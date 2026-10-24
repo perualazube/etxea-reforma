@@ -228,7 +228,7 @@ async function askAI(a, b64) {
 $('gen').onclick = async () => {
   const m = $('gen-msg'), btn = $('gen'); m.className = 'msg';
   const a = api();
-  if (!a) { m.className = 'msg err'; m.innerHTML = 'Falta la clave de Gemini o el código de acceso. Ponlo en <a href="../">la app</a>, en Ajustes.'; return; }
+  if (!a) { m.className = 'msg err'; m.innerHTML = 'Falta la clave de Gemini o el código de acceso. Ponlo en <a href="../app/">la app</a>, en Ajustes.'; return; }
   btn.disabled = true; m.textContent = 'La IA está leyendo el boceto. Tarda unos 20 segundos...';
   try { const p = normalize(await askAI(a, sketch)); build(p); save(); m.textContent = `Listo: ${p.rooms.length} estancias, ${fmt(p.rooms.reduce((s, r) => s + area(r), 0))} m². Revisa las medidas en «Datos».`; }
   catch (e) { m.className = 'msg err'; m.textContent = e.message || 'No se pudo generar el plano.'; }
