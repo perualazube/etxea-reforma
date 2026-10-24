@@ -1,0 +1,70 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import worker, { costOf } from './worker.js';
+
+function kv(init = {}) { const m = new Map(Object.entries(init)); return { get: async k => m.get(k) ?? null, put: async (k, v) => { m.set(k, v); }, m }; }
+const ORIGIN = 'https://perualazube.github.io';
+function env(credits = 5) { return { GEMINI_KEY: 'SECRET', ALLOWED_ORIGINS: ORIGIN, ALLOWED_MODELS: 'img-model,txt-model', CODES: kv({ 'code:ABC': JSON.stringify({ name: 'Ana', credits }) }) }; }
+const req = (path, init = {}) => new Request('https://api.test' + path, { ...init, headers: { Origin: ORIGIN, ...(init.headers || {}) } });
+const auth = { Authorization: 'Bearer ABC' };
+const credits = e => JSON.parse(e.CODES.m.get('code:ABC')).credits;
+let calls = [];
+function mockFetch(status = 200, body = { id: 'x' }) { calls = []; globalThis.fetch = async (u, init) => { calls.push({ u: String(u), init }); return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }); }; }
+
+test('cost by output type', () => {
+  assert.equal(costOf({ response_format: { type: 'image' } }), 1);
+  assert.equal(costOf({ response_format: { type: 'video' } }), 10);
+  assert.equal(costOf({}), 0);
+});
+
+test('rejects missing or unknown code', async () => {
+  mockFetch();
+  assert.equal((await worker.fetch(req('/v1beta/credits'), env())).status, 401);
+  assert.equal((await worker.fetch(req('/v1beta/credits', { headers: { Authorization: 'Bearer NOPE' } }), env())).status, 401);
+});
+
+test('reports credits with CORS', async () => {
+  const r = await worker.fetch(req('/v1beta/credits', { headers: auth }), env(7));
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).credits, 7);
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), ORIGIN);
+});
+
+test('image generation charges 1 credit and uses the server key', async () => {
+  mockFetch(); const e = env(5);
+  const r = await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'img-model', response_format: { type: 'image' } }) }), e);
+  assert.equal(r.status, 200);
+  assert.equal(credits(e), 4);
+  assert.equal(calls[0].init.headers['x-goog-api-key'], 'SECRET');
+  assert.ok(!calls[0].u.includes('ABC'));
+});
+
+test('no credits → 402 and Google is not called', async () => {
+  mockFetch(); const e = env(0);
+  const r = await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'img-model', response_format: { type: 'image' } }) }), e);
+  assert.equal(r.status, 402); assert.equal(calls.length, 0);
+});
+
+test('Google error refunds the credit', async () => {
+  mockFetch(500, { error: { message: 'boom' } }); const e = env(5);
+  const r = await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'img-model', response_format: { type: 'image' } }) }), e);
+  assert.equal(r.status, 500); assert.equal(credits(e), 5);
+});
+
+test('blocks models outside the allow list', async () => {
+  mockFetch(); const e = env(5);
+  const r = await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'expensive', response_format: { type: 'image' } }) }), e);
+  assert.equal(r.status, 403); assert.equal(credits(e), 5);
+});
+
+test('download strips any key from the query and adds the server key', async () => {
+  mockFetch();
+  const r = await worker.fetch(req('/v1beta/files/abc:download?alt=media&key=LEAK', { headers: auth }), env());
+  assert.equal(r.status, 200);
+  assert.ok(!calls[0].u.includes('LEAK')); assert.ok(calls[0].u.includes('alt=media'));
+});
+
+test('unknown origin gets no CORS header', async () => {
+  const r = await worker.fetch(new Request('https://api.test/v1beta/credits', { headers: { Origin: 'https://evil.test', ...auth } }), env());
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), null);
+});

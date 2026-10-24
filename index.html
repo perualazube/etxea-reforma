@@ -253,6 +253,13 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--accent)
   box-shadow:0 2px 8px rgba(0,0,0,.4);background-image:linear-gradient(90deg,transparent 40%,#335c49 40%,#335c49 46%,transparent 46%,transparent 54%,#335c49 54%,#335c49 60%,transparent 60%)}
 .cmp .lb{position:absolute;top:8px;font-size:.7rem;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:6px;pointer-events:none}
 .cmp .lb.l{left:8px}.cmp .lb.r{right:8px}
+.cmp .lb.ai{top:auto;bottom:8px;right:8px}
+#print{display:none}
+@media print{body>*:not(#print){display:none!important}#print{display:block;color:#000;background:#fff;font:11pt/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+#print h1{font-size:20pt;margin:0 0 4px}#print h2{font-size:14pt;margin:18px 0 6px;break-after:avoid}#print .rp-room{break-inside:avoid-page}
+#print .rp-imgs{display:grid;grid-template-columns:1fr 1fr;gap:8px}#print figure{margin:0}#print img{width:100%;border-radius:4px}#print figcaption{font-size:8.5pt;color:#555}
+#print table{width:100%;border-collapse:collapse;font-size:9.5pt;margin-top:6px}#print th,#print td{border-bottom:1px solid #ccc;padding:3px 4px;text-align:left}#print td.n{text-align:right;white-space:nowrap}
+#print .rp-tot{font-weight:700}#print .rp-foot{margin-top:16px;font-size:8.5pt;color:#555}}
 .cmp.solo .before,.cmp.solo .handle,.cmp.solo .lb{display:none}
 .viewer video{max-width:100%;max-height:calc(100dvh - 200px);border-radius:8px;background:#000}
 .vstrip{display:flex;gap:6px;overflow-x:auto;padding:8px max(12px,env(safe-area-inset-left,0px))}
@@ -317,7 +324,7 @@ const ROOM_TYPES = ['Salón', 'Comedor', 'Cocina', 'Dormitorio', 'Baño', 'Despa
 const DEFAULT_CONTEXT = 'Chalet de dos plantas recién comprado en un valle rural junto a un río. Estilo objetivo: moderno cálido (blancos rotos, madera natural, verde salvia, negro mate en detalles, lino y fibras naturales). Queremos aprovechar muebles y elementos que estén bien (escalera de mármol, sofá, mesa de comedor) y hacer cambios realistas y asumibles, sin obras estructurales.';
 const QUICK_ADJUST = ['Suelo un tono más claro', 'Paredes en verde salvia', 'Quita la alfombra', 'Más luz cálida', 'Cortinas de lino blancas', 'Mantén el sofá original', 'Añade plantas', 'Menos decoración'];
 const DEFAULT_SETTINGS = {
-  key: '', brain: 'auto',
+  key: '', server: '', brain: 'auto',
   textModel: 'gemini-3.8-flash', imageModel: 'gemini-nano-banana-2.1', videoModel: 'gemini-omni-1.1-flash',
   imageSize: '2K', videoRes: '720p', theme: ''
 };
@@ -602,16 +609,23 @@ function claudeErr(e) {
 async function imgPart(blob, max) { const s = await shrink(blob, max, .9); return { type: 'image', mime_type: 'image/jpeg', data: await blobB64(s.blob) }; }
 function gemErr(status, j) {
   const msg = j?.error?.message || j?.message || '';
+  if (status === 402) return 'No te quedan créditos en el servidor de Etxea.';
+  if (status === 401) return 'El código de acceso no es válido. Revísalo en Ajustes.';
   if (/api key not valid|API_KEY_INVALID/i.test(msg)) return 'La clave de Google Gemini no es válida. Revísala en Ajustes.';
   if (status === 429) return 'Google ha limitado las peticiones (cuota). Espera un minuto o activa la facturación en Google AI Studio.';
   if (status === 403) return 'Tu clave no tiene permiso para este modelo. Activa la facturación en Google AI Studio o cambia de modelo en Ajustes.';
   if (status === 404) return 'Google no encuentra el modelo. Cámbialo en Ajustes. (' + msg.slice(0, 120) + ')';
   return 'Google respondió con un error' + (msg ? ': ' + msg.slice(0, 240) : ' (' + status + ').');
 }
+// With a server set, calls go through the Etxea proxy (it holds the Gemini key and counts credits); the key field then holds the access code.
+function api() {
+  const srv = String(S.settings.server || '').trim().replace(/\/+$/, '');
+  return srv ? { base: srv + '/v1beta', h: { 'Authorization': 'Bearer ' + S.settings.key }, srv: true } : { base: GEM, h: { 'x-goog-api-key': S.settings.key }, srv: false };
+}
 async function gemini(body, signal) {
-  const key = S.settings.key;
+  const a = api();
   let r;
-  try { r = await fetch(GEM + '/interactions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body), signal }); }
+  try { r = await fetch(a.base + '/interactions', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h }, body: JSON.stringify(body), signal }); }
   catch (e) { if (isAbort(e)) throw e; throw new UserErr('No hay conexión con Google Gemini. Comprueba internet e inténtalo de nuevo.'); }
   let j = await r.json().catch(() => ({}));
   if (!r.ok) throw new UserErr(gemErr(r.status, j));
@@ -626,7 +640,8 @@ async function gemini(body, signal) {
 }
 async function getInteraction(id, signal) {
   const path = String(id).includes('/') ? String(id) : 'interactions/' + encodeURIComponent(id);
-  const r = await fetch(GEM + '/' + path, { headers: { 'x-goog-api-key': S.settings.key }, signal });
+  const a = api();
+  const r = await fetch(a.base + '/' + path, { headers: a.h, signal });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new UserErr(gemErr(r.status, j));
   return j;
@@ -634,14 +649,16 @@ async function getInteraction(id, signal) {
 async function downloadFile(uri, signal) {
   const id = String(uri).split('files/')[1]?.split(/[?:/]/)[0];
   if (!id) { const r = await fetch(uri, { signal }); if (!r.ok) throw new UserErr('No se pudo descargar el resultado.'); return r.blob(); }
+  const a = api();
   for (let i = 0; i < 90; i++) {
-    const r = await fetch(`${GEM}/files/${id}`, { headers: { 'x-goog-api-key': S.settings.key }, signal });
+    const r = await fetch(`${a.base}/files/${id}`, { headers: a.h, signal });
     const j = await r.json().catch(() => ({}));
     if (/ACTIVE/i.test(j.state || '')) break;
     if (/FAILED/i.test(j.state || '')) throw new UserErr('Google no pudo preparar el archivo.');
     await sleep(5000, signal);
   }
-  const r = await fetch(`${GEM}/files/${id}:download?alt=media&key=${encodeURIComponent(S.settings.key)}`, { signal });
+  const r = a.srv ? await fetch(`${a.base}/files/${id}:download?alt=media`, { headers: a.h, signal })
+    : await fetch(`${GEM}/files/${id}:download?alt=media&key=${encodeURIComponent(S.settings.key)}`, { signal });
   if (!r.ok) throw new UserErr('No se pudo descargar el vídeo de Google.');
   return r.blob();
 }
@@ -806,6 +823,49 @@ async function copyText(text) {
   try { await navigator.clipboard.writeText(text); toast('Copiado'); }
   catch { sheet({ title: 'Copia el texto', body: `<textarea class="in" style="min-height:260px" readonly>${esc(text)}</textarea>`, onMount: el => { const t = $('textarea', el); t.focus(); t.select(); } }); }
 }
+// Printable proposal (the browser's print dialog saves it as PDF): per room, before and after, the chosen changes and what to buy.
+async function printReport() {
+  const p = cur();
+  const rooms = p.rooms.filter(r => r.renders.length || r.design.products.length);
+  if (!rooms.length) { toast('Todavía no hay propuestas ni productos para el informe.'); return; }
+  busy('Preparando el informe...');
+  try {
+    const parts = [];
+    let grand = 0;
+    for (const r of rooms) {
+      const rd = r.renders.find(x => x.fav) || r.renders[r.renders.length - 1];
+      const ph = rd && r.photos.find(x => x.id === rd.photoId);
+      const [before, after] = await Promise.all([ph ? Media.url(ph.mid) : '', rd ? Media.url(rd.mid) : '']);
+      const prods = r.design.products.filter(x => x.on !== false), tot = roomCost(r); grand += tot;
+      const changes = r.design.changes.filter(c => c.on);
+      parts.push(`<section class="rp-room"><h2>${esc(r.name)}</h2>
+        ${after ? `<div class="rp-imgs">${before ? `<figure><img src="${before}" alt=""><figcaption>Antes</figcaption></figure>` : ''}<figure><img src="${after}" alt=""><figcaption>Propuesta · imagen generada con IA, orientativa</figcaption></figure></div>` : ''}
+        ${changes.length ? `<ul>${changes.map(c => `<li><b>${esc(c.title)}</b>${c.detail ? ': ' + esc(c.detail) : ''}</li>`).join('')}</ul>` : ''}
+        ${prods.length ? `<table><thead><tr><th>Producto</th><th>Tienda</th><th class="n">Cant.</th><th class="n">Importe</th></tr></thead><tbody>${prods.map(x => `<tr><td>${esc(x.name)}${x.brand ? ' · ' + esc(x.brand) : ''}${x.ref ? ' · ' + esc(x.ref) : ''}</td><td>${esc(x.store || '')}</td><td class="n">${esc(String(x.qty || 1))} ${esc(x.unit || '')}</td><td class="n">${eur(num(x.price) * (num(x.qty) || 1))}</td></tr>`).join('')}<tr class="rp-tot"><td colspan="3">Total ${esc(r.name)}</td><td class="n">${eur(tot)}</td></tr></tbody></table>` : ''}
+      </section>`);
+    }
+    let el = document.getElementById('print'); if (!el) { el = document.createElement('div'); el.id = 'print'; document.body.append(el); }
+    el.innerHTML = `<h1>${esc(p.name || 'Propuesta de reforma')}</h1><div>${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}${grand ? ' · Presupuesto en materiales: <b>' + eur(grand) + '</b>' : ''}</div>${parts.join('')}
+      <p class="rp-foot">Las imágenes de propuesta están generadas con inteligencia artificial y son orientativas. Precios de referencia de cada tienda en el momento de la propuesta; no incluyen mano de obra. Hecho con Etxea.</p>`;
+    await Promise.all([...el.querySelectorAll('img')].map(i => i.complete ? 0 : new Promise(res => { i.onload = i.onerror = res; })));
+    busy(null);
+    window.print();
+  } catch (e) { busy(null); toast('No se pudo preparar el informe.'); }
+}
+// EU AI Act art. 50: realistic AI images leave the app with a visible notice. Stored copies stay clean so they can be edited again.
+async function aiMark(blob) {
+  try {
+    const bmp = await createImageBitmap(blob);
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
+    const fs = Math.max(14, Math.round(bmp.width * 0.018)), pad = Math.round(fs * 0.55), text = 'Generada con IA · Etxea';
+    g.font = `600 ${fs}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    const w = g.measureText(text).width + pad * 2, h = fs + pad * 1.4, x = bmp.width - w - pad, y = bmp.height - h - pad;
+    g.fillStyle = 'rgba(0,0,0,.55)'; g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, h / 3); else g.rect(x, y, w, h); g.fill();
+    g.fillStyle = '#fff'; g.textBaseline = 'middle'; g.fillText(text, x + pad, y + h / 2);
+    return await new Promise(res => c.toBlob(b => res(b || blob), 'image/jpeg', .92));
+  } catch { return blob; }
+}
 async function saveFile(blob, filename) {
   if (IN_ARTIFACT) {
     if (!AI.downloads) { toast('Esta vista no permite guardar archivos. Ábrelo en la app web.'); return; }
@@ -910,7 +970,7 @@ function viewHome() {
       <div><em>PASO 3</em><b>Fotos, vídeo y compra</b><span class="muted">Genera la estancia reformada, ajústala con texto o por zonas y compra lo que veis.</span></div>
     </div></section>` : ''}
     <section>
-      <div class="sec-h"><h2>Plano</h2><button class="btn sm" data-act="open-plan">${plan ? 'Abrir plano' : 'Subir plano'} ${ic('chev')}</button></div>
+      <div class="sec-h"><h2>Plano</h2><div class="row">${IN_ARTIFACT ? '' : `<a class="btn sm" href="plano3d/">Plano 3D ${ic('chev')}</a>`}<button class="btn sm" data-act="open-plan">${plan ? 'Abrir plano' : 'Subir plano'} ${ic('chev')}</button></div></div>
       ${plan ? `<button class="plan preview" data-act="open-plan" style="padding:0;text-align:left"><img data-mid="${plan.mid}" alt="Plano ${esc(plan.name)}">${p.rooms.filter(r => r.pin?.planId === plan.id).map(r => `<span class="pin" style="left:${r.pin.x}%;top:${r.pin.y}%">${esc(r.name)}</span>`).join('')}</button>`
       : `<button class="plan plan-empty" data-act="open-plan" style="width:100%">${ic('plan')}<b>Sube el plano de la casa</b><span class="small">Foto o PDF. La IA detecta las estancias, las sitúa en el plano y crea una maqueta 3D reformada.</span></button>`}
     </section>
@@ -1030,6 +1090,18 @@ function prodRow(p, roomId) {
       </div>
     <div class="links">${links}<a href="#" data-act="edit-prod" data-room="${roomId}" data-id="${p.id}">${ic('edit')} Editar</a></div></div>`;
 }
+// Affiliate IDs, empty until each programme accepts us. Amazon uses a tag; Leroy Merlin and ManoMano go through Awin deep links.
+const AFF = { amazon: '', awin: '', awinMid: { leroymerlin: '', manomano: '' } };
+function affUrl(u) {
+  try {
+    const url = new URL(u), h = url.hostname;
+    if (AFF.amazon && /(^|\.)amazon\.es$/.test(h)) { url.searchParams.set('tag', AFF.amazon); return url.href; }
+    const mid = /leroymerlin\.es$/.test(h) ? AFF.awinMid.leroymerlin : /manomano\.es$/.test(h) ? AFF.awinMid.manomano : '';
+    if (AFF.awin && mid) return `https://www.awin1.com/cread.php?awinmid=${mid}&awinaffid=${AFF.awin}&ued=${encodeURIComponent(url.href)}`;
+  } catch {}
+  return u;
+}
+const affOn = () => !!(AFF.amazon || AFF.awin);
 function storeLinks(store, q, url) {
   const s = norm(store); const e = encodeURIComponent(q);
   const out = [];
@@ -1037,12 +1109,13 @@ function storeLinks(store, q, url) {
   if (s.includes('ikea')) out.push([`https://www.ikea.com/es/es/search/?q=${e}`, 'IKEA']);
   else if (s.includes('leroy')) out.push([`https://www.leroymerlin.es/search?q=${e}`, 'Leroy Merlin']);
   else if (s.includes('amazon')) out.push([`https://www.amazon.es/s?k=${e}`, 'Amazon']);
+  else if (s.includes('manomano')) out.push([`https://www.manomano.es/busqueda/${e}`, 'ManoMano']);
   else if (s.includes('bauhaus')) out.push([`https://www.bauhaus.es/search?q=${e}`, 'Bauhaus']);
   else if (s.includes('maisons')) out.push([`https://www.maisonsdumonde.com/ES/es/search?q=${e}`, 'Maisons du Monde']);
   else if (s.includes('kave')) out.push([`https://kavehome.com/es/es/search?q=${e}`, 'Kave Home']);
   else if (s.includes('sklum')) out.push([`https://www.sklum.com/es/buscar?search_query=${e}`, 'Sklum']);
   out.push([`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q + (store && !out.length ? ' ' + store : ''))}`, 'Comparar precios']);
-  return out.map(([h, l]) => `<a href="${esc(h)}" target="_blank" rel="noopener">${ic('ext')} ${esc(l)}</a>`).join('');
+  return out.map(([h, l]) => { const a = affUrl(h); return `<a href="${esc(a)}" target="_blank" rel="${a !== h ? 'sponsored ' : ''}noopener">${ic('ext')} ${esc(l)}</a>`; }).join('');
 }
 function roomShop(r) {
   const prods = r.design.products;
@@ -1142,7 +1215,8 @@ function viewShop() {
     <div class="totals"><div class="tot"><b>${eur(total)}</b><span>Total reforma</span></div><div class="tot"><b>${eur(bought)}</b><span>Comprado</span></div><div class="tot"><b>${eur(total - bought)}</b><span>Pendiente</span></div></div>
     ${budget ? `<div class="bar ${total > budget ? 'over' : ''}"><i style="width:${Math.min(100, total / budget * 100)}%"></i></div><p class="small muted">${total > budget ? `Os pasáis ${eur(total - budget)} del presupuesto (${eur(budget)}).` : `Quedan ${eur(budget - total)} del presupuesto (${eur(budget)}).`}</p>` : ''}
     <div class="row"><div class="seg" style="flex:1;min-width:240px">${[['all', 'Todo'], ['todo', 'Pendiente'], ['done', 'Comprado']].map(([k, l]) => `<button data-act="shop-filter" data-k="${k}" aria-selected="${f === k}">${l}</button>`).join('')}</div>
-      <button class="btn sm" data-act="copy-list">${ic('copy')} Copiar</button><button class="btn sm" data-act="csv">${ic('download')} CSV</button></div>
+      <button class="btn sm" data-act="copy-list">${ic('copy')} Copiar</button><button class="btn sm" data-act="csv">${ic('download')} CSV</button><button class="btn sm" data-act="report">${ic('download')} Informe PDF</button></div>
+    ${affOn() ? `<p class="small muted">Algunos enlaces de compra son de afiliado: si compras a través de ellos, Etxea recibe una pequeña comisión sin coste para ti.</p>` : ''}
     ${rooms.length ? rooms.map(r => { const l = visible.filter(a => a.r === r); return `<section class="card"><div class="sec-h"><button class="btn ghost sm" data-act="room" data-id="${r.id}" style="padding-left:0"><h3>${esc(r.name)}</h3>${ic('chev')}</button><span class="mono small">${eur(sum(l))}</span></div><div>${l.map(a => prodRow(a.x, r.id)).join('')}</div></section>`; }).join('')
     : `<div class="empty">${ic('cart')}<b>${all.length ? 'Nada en este filtro' : 'Todavía no hay productos'}</b><span class="small">Pide una propuesta con IA en cualquier estancia y aquí aparecerá todo lo necesario para comprarla.</span></div>`}
   </div>`;
@@ -1166,6 +1240,10 @@ function viewSettings() {
       <p class="small muted">Genera las fotos (Nano Banana), los vídeos (Omni) y el diseño. Crea una clave en Google AI Studio y activa la facturación para las imágenes: cada foto cuesta unos céntimos. La clave se guarda solo en este dispositivo.</p>
       <label class="f">Clave de API<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="AIza..."></label>
       <div class="row"><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">${ic('ext')} Conseguir clave</a><button class="btn sm" data-act="test-key">${ic('check')} Probar conexión</button></div>
+      <details class="adv"${s.server ? ' open' : ''}><summary>Usar el servidor de Etxea (código de acceso)</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <p class="small muted">Si tienes un código de acceso, pon aquí la dirección del servidor y pega el código en «Clave de API». No necesitas clave de Google.</p>
+        <label class="f">Dirección del servidor<input class="in mono" id="s-server" inputmode="url" autocomplete="off" value="${esc(s.server || '')}" placeholder="https://etxea-api.ejemplo.workers.dev"></label>
+      </div></details>
       <details class="adv"><summary>Modelos y calidad</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
         <label class="f">Fotos${sel('s-imodel', [['gemini-nano-banana-2.1', 'Nano Banana 2.1 (recomendado)'], ['gemini-3-pro-image', 'Gemini 3 Pro Image (máxima calidad)'], ['gemini-3.1-flash-image', 'Gemini 3.1 Flash Image'], ['gemini-3.1-flash-lite-image', 'Gemini 3.1 Flash Lite Image (barato)']], s.imageModel)}</label>
         <div class="two"><label class="f">Resolución de foto${sel('s-isize', [['1K', '1K'], ['2K', '2K'], ['4K', '4K']], s.imageSize)}</label><label class="f">Resolución de vídeo${sel('s-vres', [['720p', '720p'], ['1080p', '1080p']], s.videoRes)}</label></div>
@@ -1215,6 +1293,7 @@ document.addEventListener('input', e => {
   else if (el.id === 's-context') { cur().context = el.value; save(); }
   else if (el.id === 's-budget') { cur().budget = el.value; save(); }
   else if (el.id === 's-key') { S.settings.key = el.value.trim(); saveSettings(); }
+  else if (el.id === 's-server') { S.settings.server = el.value.trim(); saveSettings(); }
 });
 function autoGrow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 function settingsChange(el) {
@@ -1263,6 +1342,7 @@ const ACTIONS = {
   'copy-art': () => copyText(ART_URL),
   'copy-list': el => copyText(listText(el.dataset.room ? [roomById(el.dataset.room)] : cur().rooms)),
   csv: () => saveFile(new Blob(['﻿' + csvText()], { type: 'text/csv' }), `compra-${slug(cur().name)}.csv`),
+  report: () => printReport(),
   'shop-filter': el => { S.shopFilter = el.dataset.k; renderView(); },
 
   'plan-upload': () => uploadPlan(),
@@ -1473,7 +1553,7 @@ function drawViewer() {
     <button class="icon-btn" data-v="fav" aria-label="Favorita" style="${rd.fav ? 'color:#ffd166' : ''}">${ic('star')}</button>
     <button class="icon-btn" data-v="del" aria-label="Borrar">${ic('trash')}</button></div>
     <div class="stage">${waiting ? `<div style="text-align:center"><div class="spin"></div><p>${esc(waiting.label)}... </p><p class="small" style="color:#a9b3ab">Suele tardar entre 10 y 40 segundos.</p></div>` : `
-      <div class="cmp ${v.solo || !ph ? 'solo' : ''}" style="--p:50%"><img class="after" data-mid="${rd.mid}" alt="Propuesta"><img class="before" ${ph ? `data-mid="${ph.mid}"` : ''} alt="Antes"><div class="handle"></div><span class="lb l">Antes</span><span class="lb r">Después</span></div>`}</div>
+      <div class="cmp ${v.solo || !ph ? 'solo' : ''}" style="--p:50%"><img class="after" data-mid="${rd.mid}" alt="Propuesta"><img class="before" ${ph ? `data-mid="${ph.mid}"` : ''} alt="Antes"><div class="handle"></div><span class="lb l">Antes</span><span class="lb r">Después</span><span class="lb ai">Generada con IA</span></div>`}</div>
     ${chain.length > 1 ? `<div class="vstrip">${chain.map((x, i) => `<button data-v="pick" data-id="${x.id}" data-mid="${x.mid}" aria-current="${x === rd}" aria-label="Versión ${i + 1}"><span>${i + 1}</span></button>`).join('')}</div>` : ''}
     <div class="vacts">
       <button data-v="adjust">${ic('edit')}Ajustar</button>
@@ -1508,7 +1588,7 @@ const VACT = {
   variant: (r, rd, ph) => { if (!ph) return; const job = runRender(r, ph, { prompt: rd.prompt, kind: 'variant', parent: rd.parent || rd.id, useRefs: false, base: null }); waitIn(r); return job; },
   products: (r, rd, ph) => detectProducts(r, rd, ph),
   video: (r, rd) => aiVideoSheet(r, rd),
-  save: async (r, rd) => saveFile(await Media.blob(rd.mid), `${slug(r.name)}-propuesta.jpg`)
+  save: async (r, rd) => saveFile(await aiMark(await Media.blob(rd.mid)), `${slug(r.name)}-propuesta.jpg`)
 };
 function waitIn(r) { const j = Jobs.list[Jobs.list.length - 1]; if (j && S.viewer) { S.viewer.waiting = j.id; drawViewer(); } }
 
@@ -1880,7 +1960,7 @@ function openModelViewer(id) {
   sheet({ title: 'Maqueta 3D · ' + plan.name, wide: true, body: `<img data-mid="${m.mid}" alt="Maqueta 3D" style="width:100%;border-radius:10px">`,
     foot: `<button class="btn danger" id="mo-del" aria-label="Borrar maqueta">${ic('trash')}</button><button class="btn" id="mo-vid">${ic('video')} Vídeo vuelo</button><button class="btn pri" id="mo-save">${ic('download')} Guardar</button>`,
     onMount: (el, close) => {
-      $('#mo-save', el).onclick = async () => saveFile(await Media.blob(m.mid), `maqueta-${slug(plan.name)}.jpg`);
+      $('#mo-save', el).onclick = async () => saveFile(await aiMark(await Media.blob(m.mid)), `maqueta-${slug(plan.name)}.jpg`);
       $('#mo-vid', el).onclick = () => { close(); aiVideoSheet(null, { mid: m.mid, w: m.w, h: m.h, id: m.id }, { plan }); };
       $('#mo-del', el).onclick = async () => { plan.models = plan.models.filter(x => x !== m); await Media.remove(m.mid); save(); close(); renderView(); };
     } });
@@ -1937,12 +2017,14 @@ async function testKey() {
   if (!S.settings.key) { toast('Pega primero la clave.'); return; }
   busy('Probando la conexión con Google...');
   try {
-    const r = await fetch(`${GEM}/models?pageSize=200`, { headers: { 'x-goog-api-key': S.settings.key } });
+    const a = api();
+    const r = await fetch(`${a.base}/models?pageSize=200`, { headers: a.h });
     const j = await r.json().catch(() => ({}));
     busy(null);
     if (!r.ok) { toast(gemErr(r.status, j)); return; }
     const names = (j.models || []).map(m => String(m.name || '').replace('models/', ''));
     const missing = [S.settings.imageModel, S.settings.textModel, S.settings.videoModel].filter(m => names.length && !names.includes(m));
+    if (a.srv) { const c = await fetch(`${a.base}/credits`, { headers: a.h }).then(x => x.json()).catch(() => ({})); toast(`Conectado al servidor. Te quedan ${c.credits ?? '?'} créditos.`); return; }
     toast(missing.length ? `Conectado, pero tu clave no ve: ${missing.join(', ')}. Elige otro modelo.` : 'Conexión correcta con Google Gemini.');
   } catch (e) { busy(null); toast('No hay conexión con Google. Revisa internet.'); }
 }
