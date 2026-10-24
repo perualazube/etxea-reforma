@@ -1,6 +1,9 @@
 name = "etxeberriai-api"
 main = "worker.js"
 compatibility_date = "2026-10-01"
+# Served at api.etxeberriai.com (Cloudflare creates the DNS record and certificate); no workers.dev address.
+workers_dev = false
+routes = [{ pattern = "api.etxeberriai.com", custom_domain = true }]
 
 [vars]
 ALLOWED_ORIGINS = "https://etxeberriai.com,https://www.etxeberriai.com,https://perualazube.github.io"
@@ -11,3 +14,18 @@ ALLOWED_MODELS = "gemini-nano-banana-2.1,gemini-3.1-flash-image,gemini-3.1-flash
 [[kv_namespaces]]
 binding = "CODES"
 id = "PENDIENTE"
+
+# Rate limits (Workers rate limiting API): per access code for the AI, per IP for wrong codes and the waiting list.
+[[ratelimits]]
+name = "RL_API"
+namespace_id = "1001"
+  [ratelimits.simple]
+  limit = 30
+  period = 60
+
+[[ratelimits]]
+name = "RL_IP"
+namespace_id = "1002"
+  [ratelimits.simple]
+  limit = 10
+  period = 60
