@@ -82,3 +82,29 @@ test('waitlist stores a valid email once, with consent', async () => {
   await post({ email: 'ana@ejemplo.com', consent: true, profile: 'otro' });
   assert.equal(JSON.parse(e.CODES.m.get('wait:ana@ejemplo.com')).profile, 'particular');
 });
+
+test('model kind sets the minimum cost', () => {
+  assert.equal(costOf({ model: 'gemini-omni-1.1-flash' }), 10);
+  assert.equal(costOf({ model: 'gemini-nano-banana-2.1', response_format: { type: 'text' } }), 1);
+  assert.equal(costOf({ model: 'gemini-3.8-flash' }), 0);
+});
+
+test('only known fields are forwarded to Google', async () => {
+  mockFetch(); const e = env(5);
+  await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'txt-model', input: 'hola', tools: [{ google_search: {} }], agent: 'x' }) }), e);
+  const sent = JSON.parse(calls[0].init.body);
+  assert.deepEqual(Object.keys(sent).sort(), ['input', 'model']);
+});
+
+test('text needs credits left even though it is free', async () => {
+  mockFetch(); const e = env(0);
+  const r = await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'txt-model', input: 'hola' }) }), e);
+  assert.equal(r.status, 402); assert.equal(calls.length, 0);
+});
+
+test('rate limit and disabled codes', async () => {
+  mockFetch(); const e = env(5); e.RL_API = { limit: async () => ({ success: false }) };
+  assert.equal((await worker.fetch(req('/v1beta/credits', { headers: auth }), e)).status, 429);
+  const d = env(5); d.CODES.m.set('code:ABC', JSON.stringify({ credits: 5, disabled: true }));
+  assert.equal((await worker.fetch(req('/v1beta/credits', { headers: auth }), d)).status, 403);
+});

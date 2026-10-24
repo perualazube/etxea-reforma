@@ -5,7 +5,7 @@
 const GEM = 'https://generativelanguage.googleapis.com';
 const COST = { image: 1, video: 10, text: 0 };
 
-const json = (status, obj, cors) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', ...cors } });
+const json = (status, obj, cors) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store', ...cors } });
 const fail = (status, message, cors) => json(status, { error: { message } }, cors);
 
 function corsFor(req, env) {
@@ -15,10 +15,24 @@ function corsFor(req, env) {
   return ok ? { 'Access-Control-Allow-Origin': origin || '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Max-Age': '86400', 'Vary': 'Origin' } : {};
 }
 
-// What a POST /v1beta/interactions costs, from the requested output type.
+// What a POST /v1beta/interactions costs: the dearer of the requested output type and the model's own kind,
+// so a video or image model cannot be called for free by leaving out response_format.
 export function costOf(body) {
   const type = String(body?.response_format?.type || 'text').toLowerCase();
-  return COST[type] ?? COST.image;
+  const model = String(body?.model || '').toLowerCase();
+  const byModel = /omni|veo/.test(model) ? COST.video : /image|banana|imagen/.test(model) ? COST.image : COST.text;
+  return Math.max(COST[type] ?? COST.image, byModel);
+}
+
+// Only the fields the app sends reach Google: no tools, agents or other paid extras through our key.
+const BODY_FIELDS = ['model', 'input', 'response_format', 'generation_config', 'system_instruction'];
+export const cleanBody = body => Object.fromEntries(BODY_FIELDS.filter(k => body?.[k] !== undefined).map(k => [k, body[k]]));
+
+const MAX_BODY = 25 * 1024 * 1024;
+// Workers rate-limit bindings (wrangler.toml [[ratelimits]]); missing bindings mean no limit, as in tests.
+async function limited(binding, key) {
+  if (!binding) return false;
+  try { const { success } = await binding.limit({ key }); return !success; } catch { return false; }
 }
 
 async function account(code, env) {
@@ -63,23 +77,35 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     const url = new URL(req.url);
     const path = url.pathname;
+    const ip = req.headers.get('CF-Connecting-IP') || 'local';
+    if (Number(req.headers.get('Content-Length') || 0) > MAX_BODY) return fail(413, 'Petición demasiado grande', cors);
     if (path === '/' || path === '/health') return json(200, { ok: true }, cors);
-    if (path === '/waitlist' && req.method === 'POST') return waitlist(req, env, cors);
+    if (path === '/waitlist' && req.method === 'POST') {
+      if (await limited(env.RL_IP, 'w:' + ip)) return fail(429, 'Demasiados intentos, prueba en un minuto', cors);
+      return waitlist(req, env, cors);
+    }
     if (!path.startsWith('/v1beta/')) return fail(404, 'Ruta no encontrada', cors);
 
-    const code = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+    const code = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim().slice(0, 100);
     const acc = await account(code, env);
-    if (!acc) return fail(401, 'Código de acceso no válido', cors);
+    if (!acc) {
+      // Slow down anyone guessing codes.
+      if (await limited(env.RL_IP, 'c:' + ip)) return fail(429, 'Demasiados intentos, prueba en un minuto', cors);
+      return fail(401, 'Código de acceso no válido', cors);
+    }
+    if (acc.disabled) return fail(403, 'Este código está desactivado', cors);
+    if (await limited(env.RL_API, code)) return fail(429, 'Demasiadas peticiones seguidas, espera un momento', cors);
 
     if (path === '/v1beta/credits') return json(200, { name: acc.name || '', credits: acc.credits || 0 }, cors);
 
     if (req.method === 'POST' && path === '/v1beta/interactions') {
       let body;
-      try { body = await req.json(); } catch { return fail(400, 'Petición no válida', cors); }
+      try { body = cleanBody(await req.json()); } catch { return fail(400, 'Petición no válida', cors); }
       const allowed = String(env.ALLOWED_MODELS || '').split(',').map(s => s.trim()).filter(Boolean);
       if (allowed.length && !allowed.includes(String(body.model || ''))) return fail(403, 'Modelo no permitido en este servidor: ' + body.model, cors);
       const cost = costOf(body);
-      if ((acc.credits || 0) < cost) return fail(402, 'Sin créditos', cors);
+      // Text is free but still needs an account with credits left.
+      if ((acc.credits || 0) < Math.max(cost, 1)) return fail(402, 'Sin créditos', cors);
       if (cost) await addCredits(code, acc, -cost, env);
       const r = await upstream(path, '', { method: 'POST', body: JSON.stringify(body) }, env);
       if (!r.ok && cost) await addCredits(code, acc, cost, env);
