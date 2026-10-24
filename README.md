@@ -1,4 +1,4 @@
-# Etxea Reforma
+# EtxeBerriAI
 
 App web para móvil que reforma las estancias de la casa con IA a partir de fotos, vídeos y el plano.
 
