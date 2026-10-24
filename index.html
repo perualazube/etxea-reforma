@@ -920,7 +920,7 @@ function viewHome() {
       <div><em>PASO 3</em><b>Fotos, vídeo y compra</b><span class="muted">Genera la estancia reformada, ajústala con texto o por zonas y compra lo que veis.</span></div>
     </div></section>` : ''}
     <section>
-      <div class="sec-h"><h2>Plano</h2><button class="btn sm" data-act="open-plan">${plan ? 'Abrir plano' : 'Subir plano'} ${ic('chev')}</button></div>
+      <div class="sec-h"><h2>Plano</h2><div class="row">${IN_ARTIFACT ? '' : `<a class="btn sm" href="plano3d/">Plano 3D ${ic('chev')}</a>`}<button class="btn sm" data-act="open-plan">${plan ? 'Abrir plano' : 'Subir plano'} ${ic('chev')}</button></div></div>
       ${plan ? `<button class="plan preview" data-act="open-plan" style="padding:0;text-align:left"><img data-mid="${plan.mid}" alt="Plano ${esc(plan.name)}">${p.rooms.filter(r => r.pin?.planId === plan.id).map(r => `<span class="pin" style="left:${r.pin.x}%;top:${r.pin.y}%">${esc(r.name)}</span>`).join('')}</button>`
       : `<button class="plan plan-empty" data-act="open-plan" style="width:100%">${ic('plan')}<b>Sube el plano de la casa</b><span class="small">Foto o PDF. La IA detecta las estancias, las sitúa en el plano y crea una maqueta 3D reformada.</span></button>`}
     </section>

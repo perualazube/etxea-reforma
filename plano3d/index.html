@@ -1,0 +1,120 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Etxea · Plano 3D</title>
+<meta name="description" content="Convierte el boceto de tu casa en un plano 3D navegable y compara el estado actual con la reforma.">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-height 3D viewer; header with mode switches and actions; floating room index; bottom sheet for "create from sketch" */
+:root{
+  --bg:#e8ebe5; --panel:#fbfcf9; --fg:#1d231f; --muted:#5b665e; --line:#cdd3ca;
+  --accent:#365f4c; --accent-fg:#f4f7f2; --scene:#dfe4dc; --ground:#c9d1c2; --warn:#9a3b25;
+  --f-display:"Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131714; --panel:#1b211d; --fg:#e5eae4; --muted:#98a39b; --line:#2d3530;
+  --accent:#8fc0a6; --accent-fg:#102017; --scene:#171c18; --ground:#232b25; --warn:#f0a58c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131714; --panel:#1b211d; --fg:#e5eae4; --muted:#98a39b; --line:#2d3530;
+  --accent:#8fc0a6; --accent-fg:#102017; --scene:#171c18; --ground:#232b25; --warn:#f0a58c; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:14px var(--f-body);overflow:hidden}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom:1px solid var(--line);background:var(--panel)}
+.ttl{display:flex;flex-direction:column;gap:2px;min-width:0;margin-right:auto}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.25rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{font-size:.8rem;color:var(--muted)}
+.sub a{color:inherit}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
+.seg button,.btn{font:500 .82rem var(--f-body);color:var(--fg);background:transparent;border:0;padding:7px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.btn{border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn:disabled{opacity:.55;cursor:default}
+button:focus-visible,.room:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.viewer{position:relative;min-height:0}
+#stage{position:absolute;inset:0}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.index{position:absolute;left:max(16px, env(safe-area-inset-left, 0px));top:16px;width:236px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;max-height:calc(100% - 32px);overflow:auto}
+.index h2{font:700 .72rem var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 4px}
+.room{display:flex;justify-content:space-between;gap:8px;align-items:baseline;background:transparent;border:0;border-radius:6px;
+  padding:6px 8px;color:var(--fg);font:400 .86rem var(--f-body);cursor:pointer;text-align:left}
+.room:hover{background:var(--bg)}
+.m2{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.total{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:4px;padding:8px 8px 0;font-size:.82rem}
+.changes{margin:8px 0 0;padding:8px 8px 0 24px;border-top:1px solid var(--line);font-size:.78rem;line-height:1.5}
+.changes li::marker{color:var(--accent)}
+.sheet{position:absolute;right:max(16px, env(safe-area-inset-right, 0px));top:16px;width:min(380px, calc(100% - 32px));background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;max-height:calc(100% - 32px);overflow:auto;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.sheet[hidden],.changes[hidden]{display:none}
+.sheet h2{font:700 1rem var(--f-display);margin:0}
+.sheet p{margin:0;font-size:.84rem;line-height:1.45;color:var(--muted)}
+.sheet textarea{width:100%;min-height:220px;font:.76rem/1.4 var(--f-mono);border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:8px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.msg{font-size:.82rem;line-height:1.4}
+.msg.err{color:var(--warn)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed var(--line);border-radius:10px;padding:18px;text-align:center;cursor:pointer;font-size:.86rem}
+.drop img{max-width:100%;max-height:160px;border-radius:6px}
+.hint{position:absolute;right:max(16px, env(safe-area-inset-right, 0px));bottom:14px;font-size:.74rem;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 9px}
+@media (max-width:640px){
+  .index{top:auto;bottom:12px;left:12px;right:12px;width:auto;flex-direction:row;overflow-x:auto;padding:8px;gap:6px;max-height:none}
+  .index h2,.total,.changes{display:none}
+  .room{flex-direction:column;gap:0;border:1px solid var(--line);flex:0 0 auto}
+  .hint{display:none}
+  h1{font-size:1.05rem}
+  .sheet{left:12px;right:12px;width:auto;top:12px}
+}
+</style></head><body>
+<div class="app">
+  <header>
+    <div class="ttl">
+      <h1 id="title">Plano 3D</h1>
+      <span class="sub">Arrastra para girar, pellizca o usa la rueda para acercar. <a href="../">Volver a la app</a></span>
+    </div>
+    <div class="ctrls">
+      <div class="seg" role="group" aria-label="Acabados"><button id="m-now" aria-pressed="true">Estado actual</button><button id="m-prop" aria-pressed="false">Propuesta</button></div>
+      <div class="seg" role="group" aria-label="Paredes"><button id="w-high" aria-pressed="true">Paredes altas</button><button id="w-low" aria-pressed="false">Bajas</button></div>
+      <div class="seg" role="group" aria-label="Vista"><button id="v-3d" aria-pressed="true">3D</button><button id="v-top" aria-pressed="false">Planta</button></div>
+      <button class="btn pri" id="open-create">Crear desde boceto</button>
+      <button class="btn" id="open-data">Datos</button>
+    </div>
+  </header>
+  <div class="viewer">
+    <div id="stage"></div>
+    <nav class="index" aria-label="Estancias">
+      <h2>Estancias</h2>
+      <div id="rooms" style="display:contents"></div>
+      <div class="total"><span>Total aprox.</span><span class="m2" id="tot"></span></div>
+      <ol class="changes" id="changes" hidden></ol>
+    </nav>
+    <section class="sheet" id="create" hidden aria-labelledby="create-h">
+      <h2 id="create-h">Crear el plano desde un boceto</h2>
+      <p>Sube una foto del boceto o del plano de una planta. La IA lo convierte en estancias, puertas y ventanas; si algo no cuadra, corrígelo en «Datos». Usa la clave o el código de acceso que tengas en los Ajustes de la app.</p>
+      <label class="drop" id="drop"><span id="drop-t">Elegir foto del boceto</span><input type="file" id="file" accept="image/*" hidden></label>
+      <div class="row"><button class="btn pri" id="gen" disabled>Generar plano 3D</button><button class="btn" id="close-create">Cerrar</button></div>
+      <div class="msg" id="gen-msg" role="status"></div>
+    </section>
+    <section class="sheet" id="data" hidden aria-labelledby="data-h">
+      <h2 id="data-h">Datos del plano</h2>
+      <p>Medidas en metros, origen arriba a la izquierda. Cambia números o colores y pulsa Aplicar.</p>
+      <textarea id="json" spellcheck="false" aria-label="JSON del plano"></textarea>
+      <div class="row"><button class="btn pri" id="apply">Aplicar</button><button class="btn" id="sample">Ejemplo: Etxea</button><button class="btn" id="download">Descargar</button><button class="btn" id="close-data">Cerrar</button></div>
+      <div class="msg" id="data-msg" role="status"></div>
+    </section>
+    <div class="hint">Toca una estancia para acercarte</div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="plano.js"></script>
+<script src="viewer.js"></script>
+</body></html>
