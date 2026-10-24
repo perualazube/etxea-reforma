@@ -1,5 +1,7 @@
 # Publishes the EtxeBerriAI server (server/) to Cloudflare Workers.
 # Needs three repository secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and GEMINI_KEY.
+# Run it by hand with "codigos" to create access codes. Make a code and its hash with:
+#   node -e "const c=require('crypto'),k='EB-'+c.randomBytes(6).toString('hex').toUpperCase();console.log(k,c.createHash('sha256').update(k).digest('hex'))"
 name: Publicar servidor
 
 on:
@@ -7,6 +9,11 @@ on:
     branches: [main]
     paths: ['server/**', '.github/workflows/servidor.yml']
   workflow_dispatch:
+    inputs:
+      codigos:
+        description: 'Códigos a crear o recargar, como JSON: [{"hash":"<sha256 del código>","credits":30,"label":"beta"}]. Solo el hash: el código nunca pasa por GitHub.'
+        required: false
+        default: ''
 
 concurrency: servidor
 
@@ -47,6 +54,7 @@ jobs:
           if [ -z "$ID" ]; then npx wrangler kv namespace create etxeberriai-codes; ID=$(find_id); fi
           test -n "$ID"
           sed -i "s/^id = .*/id = \"$ID\"/" wrangler.toml
+          echo "KV_ID=$ID" >> "$GITHUB_ENV"
       - name: Publicar
         if: steps.check.outputs.ready == 'true'
         run: |
@@ -59,3 +67,22 @@ jobs:
         run: |
           for i in 1 2 3 4 5 6; do curl -fsS https://api.etxeberriai.com/health && exit 0; sleep 10; done
           echo "El servidor no responde todavía en api.etxeberriai.com (el certificado puede tardar unos minutos)." >> "$GITHUB_STEP_SUMMARY"
+      - name: Crear códigos de acceso
+        if: steps.check.outputs.ready == 'true' && inputs.codigos != ''
+        env:
+          CODIGOS: ${{ inputs.codigos }}
+        run: |
+          set -o pipefail
+          node -e '
+            const list = JSON.parse(process.env.CODIGOS);
+            if (!Array.isArray(list) || list.length > 50) throw new Error("Lista no válida");
+            const out = list.map(c => {
+              if (!/^[0-9a-f]{64}$/.test(c.hash)) throw new Error("Hash no válido");
+              const credits = Number(c.credits); if (!Number.isInteger(credits) || credits < 0 || credits > 100000) throw new Error("Créditos no válidos");
+              const label = String(c.label || "beta"); if (!/^[A-Za-z0-9 _.-]{1,40}$/.test(label)) throw new Error("Etiqueta no válida");
+              return { key: "code:" + c.hash, value: JSON.stringify({ name: label, credits, at: new Date().toISOString() }) };
+            });
+            require("fs").writeFileSync("codes.json", JSON.stringify(out));'
+          npx wrangler kv bulk put --namespace-id "$KV_ID" --remote codes.json
+          rm codes.json
+          echo "Códigos guardados: $(node -e 'console.log(JSON.parse(process.env.CODIGOS).length)')" >> "$GITHUB_STEP_SUMMARY"
