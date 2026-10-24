@@ -1,4 +1,4 @@
-# Servidor de Etxea (proxy de Gemini con créditos)
+# Servidor de EtxeBerriAI (proxy de Gemini con créditos y lista de espera)
 
 Guarda la clave de Google Gemini en el servidor y cobra créditos por cada generación, para que los usuarios
 solo necesiten un código de acceso. Es un Cloudflare Worker; el plan gratuito basta para la beta.
@@ -11,7 +11,19 @@ solo necesiten un código de acceso. Es un Cloudflare Worker; el plan gratuito b
 
 Si Google devuelve error, el crédito se devuelve.
 
-## Puesta en marcha (una vez)
+## Publicación automática (recomendada)
+
+El workflow `.github/workflows/servidor.yml` lo publica en cada cambio de `server/` en `main` (o a mano desde la pestaña Actions).
+Solo hacen falta tres secretos del repositorio (Settings → Secrets and variables → Actions):
+`CLOUDFLARE_API_TOKEN` (plantilla «Edit Cloudflare Workers»), `CLOUDFLARE_ACCOUNT_ID` y `GEMINI_KEY`.
+La primera vez crea la base de datos de códigos (`etxeberriai-codes`). La dirección del servidor aparece en el resumen de la ejecución.
+
+## Lista de espera
+
+`POST /waitlist` con `{"email", "consent": true, "profile", "source"}` guarda `wait:<email>` en KV. Para verlas:
+`npx wrangler kv key list --binding CODES --prefix wait: --remote`
+
+## Puesta en marcha a mano
 
 1. Crear una cuenta gratuita en Cloudflare.
 2. `cd server && npx wrangler login`

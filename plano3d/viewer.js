@@ -228,7 +228,7 @@ async function askAI(a, b64) {
 $('gen').onclick = async () => {
   const m = $('gen-msg'), btn = $('gen'); m.className = 'msg';
   const a = api();
-  if (!a) { m.className = 'msg err'; m.innerHTML = 'Falta la clave de Gemini o el código de acceso. Ponlo en <a href="../">la app</a>, en Ajustes.'; return; }
+  if (!a) { m.className = 'msg err'; m.innerHTML = 'Falta la clave de Gemini o el código de acceso. Ponlo en <a href="../app/">la app</a>, en Ajustes.'; return; }
   btn.disabled = true; m.textContent = 'La IA está leyendo el boceto. Tarda unos 20 segundos...';
   try { const p = normalize(await askAI(a, sketch)); build(p); save(); m.textContent = `Listo: ${p.rooms.length} estancias, ${fmt(p.rooms.reduce((s, r) => s + area(r), 0))} m². Revisa las medidas en «Datos».`; }
   catch (e) { m.className = 'msg err'; m.textContent = e.message || 'No se pudo generar el plano.'; }
@@ -241,7 +241,10 @@ function applyTheme() { const cs = getComputedStyle(document.documentElement);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix(); }
 new ResizeObserver(resize).observe(stage);
-let start; try { start = normalize(JSON.parse(lsGet(STORE) || 'null')); } catch { start = normalize(ETXEA); }
+// ?demo: the landing page embed always shows Etxea and flips between now and proposal until someone touches it.
+const DEMO = new URLSearchParams(location.search).has('demo');
+if (DEMO) document.body.classList.add('demo');
+let start; try { start = DEMO ? normalize(ETXEA) : normalize(JSON.parse(lsGet(STORE) || 'null')); } catch { start = normalize(ETXEA); }
 applyTheme(); build(start);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(buildLabels);
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -249,5 +252,10 @@ renderer.setAnimationLoop(() => {
   if (anim) { const k = Math.min(1, (performance.now() - anim.start) / anim.dur), e = ease(k); camera.position.lerpVectors(anim.p0, anim.p1, e); controls.target.lerpVectors(anim.t0, anim.t1, e); if (k >= 1) anim = null; }
   controls.update(); renderer.render(scene, camera);
 });
+if (DEMO && !reduce) {
+  const flip = setInterval(() => { (mode === 'now' ? $('m-prop') : $('m-now')).click(); }, 3500);
+  const stop = () => clearInterval(flip);
+  ['pointerdown', 'wheel', 'keydown'].forEach(ev => window.addEventListener(ev, stop, { once: true, capture: true }));
+}
 window.__plano = { get plan() { return plan; }, build };
 })();

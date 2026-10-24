@@ -56,6 +56,9 @@ button:focus-visible,.room:focus-visible,textarea:focus-visible,input:focus-visi
 .sheet{position:absolute;right:max(16px, env(safe-area-inset-right, 0px));top:16px;width:min(380px, calc(100% - 32px));background:var(--panel);border:1px solid var(--line);
   border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;max-height:calc(100% - 32px);overflow:auto;box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .sheet[hidden],.changes[hidden]{display:none}
+/* ?demo: embedded on the landing page, only the before/after switch */
+.demo .sub,.demo #open-create,.demo #open-data,.demo .seg[aria-label="Paredes"],.demo .index,.demo .hint{display:none}
+.demo header{padding-block:8px}
 .sheet h2{font:700 1rem var(--f-display);margin:0}
 .sheet p{margin:0;font-size:.84rem;line-height:1.45;color:var(--muted)}
 .sheet textarea{width:100%;min-height:220px;font:.76rem/1.4 var(--f-mono);border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:8px;resize:vertical}
@@ -78,7 +81,7 @@ button:focus-visible,.room:focus-visible,textarea:focus-visible,input:focus-visi
   <header>
     <div class="ttl">
       <h1 id="title">Plano 3D</h1>
-      <span class="sub">Arrastra para girar, pellizca o usa la rueda para acercar. <a href="../">Volver a la app</a></span>
+      <span class="sub">Arrastra para girar, pellizca o usa la rueda para acercar. <a href="../app/">Volver a la app</a></span>
     </div>
     <div class="ctrls">
       <div class="seg" role="group" aria-label="Acabados"><button id="m-now" aria-pressed="true">Estado actual</button><button id="m-prop" aria-pressed="false">Propuesta</button></div>
