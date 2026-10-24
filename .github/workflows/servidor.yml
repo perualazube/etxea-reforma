@@ -1,0 +1,56 @@
+# Publishes the EtxeBerriAI server (server/) to Cloudflare Workers.
+# Needs three repository secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and GEMINI_KEY.
+name: Publicar servidor
+
+on:
+  push:
+    branches: [main]
+    paths: ['server/**', '.github/workflows/servidor.yml']
+  workflow_dispatch:
+
+concurrency: servidor
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pruebas
+        run: node --test worker.test.mjs
+      - name: Comprobar secretos
+        id: check
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$GEMINI_KEY" ]; then
+            echo "Faltan secretos (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID o GEMINI_KEY): no se publica." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Instalar wrangler
+        if: steps.check.outputs.ready == 'true'
+        run: npm install --no-save wrangler@4
+      - name: Base de datos de códigos (KV)
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          find_id() { npx wrangler kv namespace list | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const l=JSON.parse(s.slice(s.indexOf("[")));const n=l.find(x=>/etxeberriai-codes/.test(x.title));process.stdout.write(n?n.id:"")})'; }
+          ID=$(find_id)
+          if [ -z "$ID" ]; then npx wrangler kv namespace create etxeberriai-codes; ID=$(find_id); fi
+          test -n "$ID"
+          sed -i "s/^id = .*/id = \"$ID\"/" wrangler.toml
+      - name: Publicar
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          npx wrangler deploy | tee deploy.log
+          printf '%s' "$GEMINI_KEY" | npx wrangler secret put GEMINI_KEY
+          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          echo "Servidor publicado en: $URL" >> "$GITHUB_STEP_SUMMARY"

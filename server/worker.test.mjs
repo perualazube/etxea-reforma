@@ -68,3 +68,17 @@ test('unknown origin gets no CORS header', async () => {
   const r = await worker.fetch(new Request('https://api.test/v1beta/credits', { headers: { Origin: 'https://evil.test', ...auth } }), env());
   assert.equal(r.headers.get('Access-Control-Allow-Origin'), null);
 });
+
+test('waitlist stores a valid email once, with consent', async () => {
+  const e = env();
+  const post = body => worker.fetch(req('/waitlist', { method: 'POST', body: JSON.stringify(body) }), e);
+  assert.equal((await post({ email: 'no-es-email', consent: true })).status, 400);
+  assert.equal((await post({ email: 'ana@ejemplo.com' })).status, 400);
+  const r = await post({ email: ' Ana@Ejemplo.com ', consent: true, profile: 'particular' });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), ORIGIN);
+  const saved = JSON.parse(e.CODES.m.get('wait:ana@ejemplo.com'));
+  assert.equal(saved.profile, 'particular');
+  await post({ email: 'ana@ejemplo.com', consent: true, profile: 'otro' });
+  assert.equal(JSON.parse(e.CODES.m.get('wait:ana@ejemplo.com')).profile, 'particular');
+});

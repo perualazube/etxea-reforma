@@ -41,6 +41,22 @@ function upstream(path, search, init, env) {
   return fetch(u, { ...init, headers });
 }
 
+// Launch waiting list from the landing page: one KV entry per email, no account needed.
+const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,}$/i;
+async function waitlist(req, env, cors) {
+  let body;
+  try { body = await req.json(); } catch { return fail(400, 'Petición no válida', cors); }
+  const email = String(body.email || '').trim().toLowerCase();
+  if (!EMAIL.test(email)) return fail(400, 'Ese email no parece válido', cors);
+  if (body.consent !== true) return fail(400, 'Hace falta aceptar la política de privacidad', cors);
+  const key = 'wait:' + email;
+  if (!(await env.CODES.get(key))) {
+    const who = String(body.profile || '').slice(0, 40);
+    await env.CODES.put(key, JSON.stringify({ at: new Date().toISOString(), profile: who, source: String(body.source || '').slice(0, 60) }));
+  }
+  return json(200, { ok: true }, cors);
+}
+
 export default {
   async fetch(req, env) {
     const cors = corsFor(req, env);
@@ -48,6 +64,7 @@ export default {
     const url = new URL(req.url);
     const path = url.pathname;
     if (path === '/' || path === '/health') return json(200, { ok: true }, cors);
+    if (path === '/waitlist' && req.method === 'POST') return waitlist(req, env, cors);
     if (!path.startsWith('/v1beta/')) return fail(404, 'Ruta no encontrada', cors);
 
     const code = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
