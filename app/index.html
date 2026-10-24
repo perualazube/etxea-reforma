@@ -1008,7 +1008,7 @@ function aiStatusNote() {
     return `<div class="note warn">${ic('key')}<div class="grow"><b>Introduce tu código de acceso.</b> Con él la app genera las fotos y los vídeos de vuestra reforma. ¿Aún no tienes? Estamos en beta privada: apúntate y te lo enviamos.<div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="go-settings">Añadir código</button><a class="btn sm" href="${WAITLIST}" target="_blank" rel="noopener">Pedir código ${ic('ext')}</a></div></div></div>`;
   }
   if (!S.settings.key) {
-    return `<div class="note warn">${ic('key')}<div class="grow"><b>Conecta la IA para empezar.</b> Pega tu clave de Google AI Studio y la app podrá diseñar y generar fotos y vídeos realistas.<div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="go-settings">Añadir clave</button><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Conseguir clave ${ic('ext')}</a></div></div></div>`;
+    return `<div class="note warn">${ic('key')}<div class="grow"><b>Conecta la IA para empezar.</b> Pega tu clave de Google AI Studio y la app podrá diseñar y generar fotos y vídeos realistas.<div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="use-code-home">Tengo un código</button><button class="btn sm" data-act="go-settings">Añadir clave de Google</button></div></div></div>`;
   }
   return '';
 }
@@ -1335,30 +1335,19 @@ function viewSettings() {
   const sel = (id, opts, v) => `<select class="in" id="${id}">${opts.map(([k, l]) => `<option value="${esc(k)}" ${k === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}${opts.some(([k]) => k === v) ? '' : `<option value="${esc(v)}" selected>${esc(v)}</option>`}</select>`;
   return `${topbar('Ajustes', IN_ARTIFACT ? 'Versión dentro de Claude' : 'App web')}
   <div class="wrap">
-    <section class="card">
-      <h2>Proyecto</h2>
-      <label class="f">Nombre<input class="in" id="s-pname" value="${esc(p.name)}"></label>
-      <label class="f">Cómo es la casa y qué buscáis (la IA lo tiene en cuenta en todas las estancias)<textarea class="in" id="s-context" style="min-height:120px">${esc(p.context)}</textarea></label>
-      <label class="f">Presupuesto total (€)<input class="in mono" id="s-budget" inputmode="decimal" value="${esc(p.budget)}" placeholder="Opcional"></label>
-    </section>
     ${IN_ARTIFACT ? `<section class="card"><h2>Inteligencia artificial</h2><p class="small">Dentro de Claude, el diseño y la lista de compra los hace <b>Claude</b>${AI.sample ? '' : ' (no disponible en esta vista)'}. Para generar fotos y vídeos realistas, abre la app web, exporta aquí el proyecto e impórtalo allí.</p><a class="btn pri" href="${APP_URL}" target="_blank" rel="noopener">${ic('ext')} Abrir la app web</a></section>`
     : `<section class="card">
+      <div class="seg" role="tablist" aria-label="Cómo conectar la IA"><button data-act="use-server" aria-selected="${!!s.server}">Código de acceso</button><button data-act="use-own" aria-selected="${!s.server}">Mi clave de Google</button></div>
       ${s.server ? `<h2>Código de acceso</h2>
       <p class="small muted">Pega el código que te hemos enviado. Cada foto gasta 1 crédito y cada vídeo con IA, 10. El diseño y la lista de compra no gastan.</p>
       <label class="f">Código<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="Tu código"></label>
       <div class="row"><button class="btn sm" data-act="test-key">${ic('check')} Ver mis créditos</button><a class="btn sm" href="${WAITLIST}" target="_blank" rel="noopener">${ic('ext')} Pedir código</a></div>
-      <details class="adv"><summary>Usar mi propia clave de Google</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-        <p class="small muted">Si tienes una clave de Google AI Studio con facturación, la app puede usarla directamente. Google te cobra a ti cada foto.</p>
-        <button class="btn sm" data-act="use-own">Cambiar a mi clave de Google</button>
-      </div></details>`
+`
       : `<h2>Google Gemini</h2>
       <p class="small muted">Genera las fotos (Nano Banana), los vídeos (Omni) y el diseño. Crea una clave en Google AI Studio y activa la facturación para las imágenes: cada foto cuesta unos céntimos. La clave se guarda solo en este dispositivo.</p>
       <label class="f">Clave de API<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="AIza..."></label>
       <div class="row"><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">${ic('ext')} Conseguir clave</a><button class="btn sm" data-act="test-key">${ic('check')} Probar conexión</button></div>
-      <details class="adv"><summary>Usar un código de EtxeBerriAI</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-        <p class="small muted">Con un código de acceso no necesitas clave de Google: la app usa el servidor de EtxeBerriAI y descuenta créditos.</p>
-        <button class="btn sm" data-act="use-server">Cambiar a código de acceso</button>
-      </div></details>`}
+`}
       <details class="adv"><summary>Modelos y calidad</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
         <label class="f">Fotos${sel('s-imodel', [['gemini-nano-banana-2.1', 'Nano Banana 2.1 (recomendado)'], ['gemini-3-pro-image', 'Gemini 3 Pro Image (máxima calidad)'], ['gemini-3.1-flash-image', 'Gemini 3.1 Flash Image'], ['gemini-3.1-flash-lite-image', 'Gemini 3.1 Flash Lite Image (barato)']], s.imageModel)}</label>
         <div class="two"><label class="f">Resolución de foto${sel('s-isize', [['1K', '1K'], ['2K', '2K'], ['4K', '4K']], s.imageSize)}</label><label class="f">Resolución de vídeo${sel('s-vres', [['720p', '720p'], ['1080p', '1080p']], s.videoRes)}</label></div>
@@ -1367,6 +1356,12 @@ function viewSettings() {
         <label class="f">O escribe otro identificador de modelo de fotos<input class="in mono" id="s-imodel-custom" placeholder="${esc(s.imageModel)}"></label>
       </div></details>
     </section>`}
+    <section class="card">
+      <h2>Proyecto</h2>
+      <label class="f">Nombre<input class="in" id="s-pname" value="${esc(p.name)}"></label>
+      <label class="f">Cómo es la casa y qué buscáis (la IA lo tiene en cuenta en todas las estancias)<textarea class="in" id="s-context" style="min-height:120px">${esc(p.context)}</textarea></label>
+      <label class="f">Presupuesto total (€)<input class="in mono" id="s-budget" inputmode="decimal" value="${esc(p.budget)}" placeholder="Opcional"></label>
+    </section>
     ${installCard()}
     <section class="card">
       <h2>Copia y traspaso</h2>
@@ -1422,6 +1417,7 @@ const ACTIONS = {
   tab: el => { S.history = []; S.nav = { name: el.dataset.k }; closeViewer(); window.scrollTo(0, 0); render(); },
   back: () => uiBack(),
   'go-settings': () => go({ name: 'settings' }),
+  'use-code-home': () => { S.settings.server = SERVER; S.settings.key = ''; saveSettings(); go({ name: 'settings' }); },
   room: el => go({ name: 'room', roomId: el.dataset.id }),
   rtab: el => { S.nav.tab = el.dataset.k; renderView(); },
   jobs: () => sheet({ title: 'En curso', body: Jobs.list.map(j => `<div class="row nowrap"><div class="spin" style="margin:0;width:20px;height:20px"></div><span class="grow">${esc(roomById(j.roomId)?.name || '')} · ${esc(j.label)}</span><button class="btn sm" data-cancel="${j.id}">Cancelar</button></div>`).join('') || '<p class="muted">Nada en curso.</p>',
@@ -1473,8 +1469,8 @@ const ACTIONS = {
   'model-view': el => openModelViewer(el.dataset.id),
 
   'test-key': () => testKey(),
-  'use-own': () => { S.settings.server = ''; S.settings.key = ''; saveSettings(); renderView(); },
-  'use-server': () => { S.settings.server = SERVER; S.settings.key = ''; saveSettings(); renderView(); },
+  'use-own': () => { if (!S.settings.server) return; S.settings.server = ''; S.settings.key = ''; saveSettings(); renderView(); },
+  'use-server': () => { if (S.settings.server) return; S.settings.server = SERVER; S.settings.key = ''; saveSettings(); renderView(); },
   theme: el => { S.settings.theme = el.dataset.k; saveSettings(); applyTheme(); renderView(); },
   export: () => exportProject(),
   import: () => importProject(),
@@ -2240,6 +2236,8 @@ function installCard() {
 /* ================= boot ================= */
 async function boot() {
   try { const ls = JSON.parse(lsGet('etxea-settings') || 'null'); const db = await Store.get('kv', 'settings'); Object.assign(S.settings, db || {}, ls || {}); } catch {}
+  // Devices set up before the server existed and never given a key start with the access code.
+  if (!S.settings.server && !S.settings.key) S.settings.server = SERVER;
   applyTheme();
   const saved = await Store.get('kv', 'project');
   S.project = saved && saved.rooms ? saved : null;
