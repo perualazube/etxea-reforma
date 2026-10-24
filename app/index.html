@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#335c49"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="EtxeBerriAI"><meta name="description" content="Reforma vuestra casa con IA: fotos y vídeos realistas, diseño editable y lista de compra."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="../icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../icon-180.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body><title>EtxeBerriAI · Reforma con IA</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data:; media-src 'self' blob: data:; connect-src https: blob: data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="theme-color" content="#335c49"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="EtxeBerriAI"><meta name="description" content="Reforma vuestra casa con IA: fotos y vídeos realistas, diseño editable y lista de compra."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="../icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../icon-180.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body><title>EtxeBerriAI · Reforma con IA</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -341,8 +341,10 @@ details.adv summary{cursor:pointer;color:var(--muted);font-size:.86rem;padding:4
 /* ================= constants ================= */
 const ART_URL = 'https://claude.ai/artifact/8iQpgP2iY3yb8pKr2UdM1C';
 const IN_ARTIFACT = typeof window.claude === 'object' && window.claude !== null;
-const APP_URL = 'https://perualazube.github.io/etxea-reforma/app/';
+const APP_URL = 'https://etxeberriai.com/app/';
 const GEM = 'https://generativelanguage.googleapis.com/v1beta';
+const SERVER = 'https://api.etxeberriai.com';
+const WAITLIST = 'https://etxeberriai.com/#lista';
 const FLOORS = ['Planta 1', 'Planta 2', 'Sótano', 'Exterior'];
 // Each style: English brief for the image model and four swatches for the style cards.
 const STYLE_INFO = {
@@ -367,7 +369,7 @@ const ROOM_TYPES = ['Salón', 'Comedor', 'Cocina', 'Dormitorio', 'Baño', 'Despa
 const DEFAULT_CONTEXT = 'Vivienda en España. Queremos aprovechar los muebles y elementos que estén bien y hacer cambios realistas y asumibles, sin obras estructurales.';
 const QUICK_ADJUST = ['Suelo un tono más claro', 'Paredes en verde salvia', 'Quita la alfombra', 'Más luz cálida', 'Cortinas de lino blancas', 'Mantén el sofá original', 'Añade plantas', 'Menos decoración'];
 const DEFAULT_SETTINGS = {
-  key: '', server: '', brain: 'auto',
+  key: '', server: SERVER, brain: 'auto',
   textModel: 'gemini-3.8-flash', imageModel: 'gemini-nano-banana-2.1', videoModel: 'gemini-omni-1.1-flash',
   imageSize: '2K', videoRes: '720p', theme: ''
 };
@@ -598,7 +600,7 @@ const AI = {
   },
   async image(prompt, blobs, { aspect, signal } = {}) {
     if (IN_ARTIFACT) throw new UserErr('Las fotos realistas se generan en la app web, no dentro de Claude.');
-    if (!S.settings.key) throw new UserErr('Añade tu clave de Google Gemini en Ajustes para generar fotos.');
+    if (!S.settings.key) throw new UserErr(S.settings.server ? 'Añade tu código de acceso en Ajustes.' : 'Añade tu clave de Google Gemini en Ajustes.');
     const input = [{ type: 'text', text: prompt }];
     for (const x of blobs) input.push(await imgPart(x, 2048));
     const body = { model: S.settings.imageModel, input, response_format: { type: 'image', image_size: S.settings.imageSize } };
@@ -615,7 +617,7 @@ const AI = {
   },
   async video(prompt, blob, { aspect = '16:9', signal } = {}) {
     if (IN_ARTIFACT) throw new UserErr('Los vídeos con IA se generan en la app web, no dentro de Claude.');
-    if (!S.settings.key) throw new UserErr('Añade tu clave de Google Gemini en Ajustes para generar vídeos.');
+    if (!S.settings.key) throw new UserErr(S.settings.server ? 'Añade tu código de acceso en Ajustes.' : 'Añade tu clave de Google Gemini en Ajustes.');
     const input = [await imgPart(blob, 1920), { type: 'text', text: prompt }];
     const body = { model: S.settings.videoModel, input, response_format: { type: 'video', aspect_ratio: aspect, resolution: S.settings.videoRes } };
     let j;
@@ -1002,8 +1004,11 @@ function aiStatusNote() {
   if (IN_ARTIFACT) {
     return `<div class="note">${ic('info')}<div><b>Versión dentro de Claude.</b> Aquí Claude analiza vuestras fotos, propone la reforma y prepara la lista de compra. Las fotos y vídeos realistas se generan en la app web: <a href="${APP_URL}" target="_blank" rel="noopener">${esc(APP_URL.replace('https://', ''))}</a></div></div>`;
   }
+  if (!S.settings.key && S.settings.server) {
+    return `<div class="note warn">${ic('key')}<div class="grow"><b>Introduce tu código de acceso.</b> Con él la app genera las fotos y los vídeos de vuestra reforma. ¿Aún no tienes? Estamos en beta privada: apúntate y te lo enviamos.<div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="go-settings">Añadir código</button><a class="btn sm" href="${WAITLIST}" target="_blank" rel="noopener">Pedir código ${ic('ext')}</a></div></div></div>`;
+  }
   if (!S.settings.key) {
-    return `<div class="note warn">${ic('key')}<div class="grow"><b>Conecta la IA para empezar.</b> Pega tu clave gratuita de Google AI Studio y la app podrá diseñar y generar fotos y vídeos realistas.<div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="go-settings">Añadir clave</button><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Conseguir clave ${ic('ext')}</a></div></div></div>`;
+    return `<div class="note warn">${ic('key')}<div class="grow"><b>Conecta la IA para empezar.</b> Pega tu clave de Google AI Studio y la app podrá diseñar y generar fotos y vídeos realistas.<div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="go-settings">Añadir clave</button><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Conseguir clave ${ic('ext')}</a></div></div></div>`;
   }
   return '';
 }
@@ -1207,7 +1212,7 @@ const affOn = () => !!(AFF.amazon || AFF.awin);
 function storeLinks(store, q, url) {
   const s = norm(store); const e = encodeURIComponent(q);
   const out = [];
-  if (url) out.push([url, 'Enlace']);
+  if (/^https?:\/\//i.test(url || '')) out.push([url, 'Enlace']);
   if (s.includes('ikea')) out.push([`https://www.ikea.com/es/es/search/?q=${e}`, 'IKEA']);
   else if (s.includes('leroy')) out.push([`https://www.leroymerlin.es/search?q=${e}`, 'Leroy Merlin']);
   else if (s.includes('amazon')) out.push([`https://www.amazon.es/s?k=${e}`, 'Amazon']);
@@ -1338,14 +1343,22 @@ function viewSettings() {
     </section>
     ${IN_ARTIFACT ? `<section class="card"><h2>Inteligencia artificial</h2><p class="small">Dentro de Claude, el diseño y la lista de compra los hace <b>Claude</b>${AI.sample ? '' : ' (no disponible en esta vista)'}. Para generar fotos y vídeos realistas, abre la app web, exporta aquí el proyecto e impórtalo allí.</p><a class="btn pri" href="${APP_URL}" target="_blank" rel="noopener">${ic('ext')} Abrir la app web</a></section>`
     : `<section class="card">
-      <h2>Google Gemini</h2>
+      ${s.server ? `<h2>Código de acceso</h2>
+      <p class="small muted">Pega el código que te hemos enviado. Cada foto gasta 1 crédito y cada vídeo con IA, 10. El diseño y la lista de compra no gastan.</p>
+      <label class="f">Código<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="Tu código"></label>
+      <div class="row"><button class="btn sm" data-act="test-key">${ic('check')} Ver mis créditos</button><a class="btn sm" href="${WAITLIST}" target="_blank" rel="noopener">${ic('ext')} Pedir código</a></div>
+      <details class="adv"><summary>Usar mi propia clave de Google</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <p class="small muted">Si tienes una clave de Google AI Studio con facturación, la app puede usarla directamente. Google te cobra a ti cada foto.</p>
+        <button class="btn sm" data-act="use-own">Cambiar a mi clave de Google</button>
+      </div></details>`
+      : `<h2>Google Gemini</h2>
       <p class="small muted">Genera las fotos (Nano Banana), los vídeos (Omni) y el diseño. Crea una clave en Google AI Studio y activa la facturación para las imágenes: cada foto cuesta unos céntimos. La clave se guarda solo en este dispositivo.</p>
       <label class="f">Clave de API<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="AIza..."></label>
       <div class="row"><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">${ic('ext')} Conseguir clave</a><button class="btn sm" data-act="test-key">${ic('check')} Probar conexión</button></div>
-      <details class="adv"${s.server ? ' open' : ''}><summary>Usar el servidor de EtxeBerriAI (código de acceso)</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-        <p class="small muted">Si tienes un código de acceso, pon aquí la dirección del servidor y pega el código en «Clave de API». No necesitas clave de Google.</p>
-        <label class="f">Dirección del servidor<input class="in mono" id="s-server" inputmode="url" autocomplete="off" value="${esc(s.server || '')}" placeholder="https://etxea-api.ejemplo.workers.dev"></label>
-      </div></details>
+      <details class="adv"><summary>Usar un código de EtxeBerriAI</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <p class="small muted">Con un código de acceso no necesitas clave de Google: la app usa el servidor de EtxeBerriAI y descuenta créditos.</p>
+        <button class="btn sm" data-act="use-server">Cambiar a código de acceso</button>
+      </div></details>`}
       <details class="adv"><summary>Modelos y calidad</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
         <label class="f">Fotos${sel('s-imodel', [['gemini-nano-banana-2.1', 'Nano Banana 2.1 (recomendado)'], ['gemini-3-pro-image', 'Gemini 3 Pro Image (máxima calidad)'], ['gemini-3.1-flash-image', 'Gemini 3.1 Flash Image'], ['gemini-3.1-flash-lite-image', 'Gemini 3.1 Flash Lite Image (barato)']], s.imageModel)}</label>
         <div class="two"><label class="f">Resolución de foto${sel('s-isize', [['1K', '1K'], ['2K', '2K'], ['4K', '4K']], s.imageSize)}</label><label class="f">Resolución de vídeo${sel('s-vres', [['720p', '720p'], ['1080p', '1080p']], s.videoRes)}</label></div>
@@ -1396,8 +1409,7 @@ document.addEventListener('input', e => {
   else if (el.id === 's-context') { cur().context = el.value; save(); }
   else if (el.id === 's-budget') { cur().budget = el.value; save(); }
   else if (el.id === 's-key') { S.settings.key = el.value.trim(); saveSettings(); }
-  else if (el.id === 's-server') { S.settings.server = el.value.trim(); saveSettings(); }
-});
+  });
 function autoGrow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 function settingsChange(el) {
   const s = S.settings; const m = { 's-imodel': 'imageModel', 's-isize': 'imageSize', 's-vres': 'videoRes', 's-tmodel': 'textModel', 's-vmodel': 'videoModel' };
@@ -1461,6 +1473,8 @@ const ACTIONS = {
   'model-view': el => openModelViewer(el.dataset.id),
 
   'test-key': () => testKey(),
+  'use-own': () => { S.settings.server = ''; S.settings.key = ''; saveSettings(); renderView(); },
+  'use-server': () => { S.settings.server = SERVER; S.settings.key = ''; saveSettings(); renderView(); },
   theme: el => { S.settings.theme = el.dataset.k; saveSettings(); applyTheme(); renderView(); },
   export: () => exportProject(),
   import: () => importProject(),
@@ -1505,7 +1519,7 @@ async function quickFlow(inputId) {
         go({ name: 'room', roomId: r.id, tab: ready ? 'res' : 'design' });
         if (ready) runRender(r, ph, {});
         else if (IN_ARTIFACT) genSheet(r);
-        else toast('Foto guardada. Añade la clave de la IA para generar.', { label: 'Ajustes', fn: () => go({ name: 'settings' }) });
+        else toast(S.settings.server ? 'Foto guardada. Añade tu código de acceso para generar.' : 'Foto guardada. Añade tu clave de Google para generar.', { label: 'Ajustes', fn: () => go({ name: 'settings' }) });
       };
     }
   });
@@ -1624,7 +1638,7 @@ function genSheet(r) {
       foot: `<button class="btn" data-act="export" data-close>Exportar proyecto</button><a class="btn pri" href="${APP_URL}" target="_blank" rel="noopener">Abrir app web</a>` });
     return;
   }
-  if (!S.settings.key) { toast('Añade tu clave de Google Gemini en Ajustes.', { label: 'Ajustes', fn: () => go({ name: 'settings' }) }); return; }
+  if (!S.settings.key) { toast(S.settings.server ? 'Añade tu código de acceso en Ajustes.' : 'Añade tu clave de Google Gemini en Ajustes.', { label: 'Ajustes', fn: () => go({ name: 'settings' }) }); return; }
   const sel = new Set(r.photos.slice(0, 1).map(p => p.id));
   let variants = 1, useRefs = r.refs.length > 0;
   sheet({
@@ -1799,7 +1813,7 @@ Devuelve SOLO JSON: {"remove_changes":["id"],"add_changes":[{"id":"n1","area":""
 }
 function ensureGemini() {
   if (IN_ARTIFACT) { toast('Esto se hace en la app web.', { label: 'Abrir', fn: () => window.open(APP_URL, '_blank') }); return false; }
-  if (!S.settings.key) { toast('Añade tu clave de Google Gemini en Ajustes.'); return false; }
+  if (!S.settings.key) { toast(S.settings.server ? 'Añade tu código de acceso en Ajustes.' : 'Añade tu clave de Google Gemini en Ajustes.', { label: 'Ajustes', fn: () => go({ name: 'settings' }) }); return false; }
   return true;
 }
 
@@ -2169,8 +2183,8 @@ function csvText() {
 
 /* ---------- settings actions ---------- */
 async function testKey() {
-  if (!S.settings.key) { toast('Pega primero la clave.'); return; }
-  busy('Probando la conexión con Google...');
+  if (!S.settings.key) { toast(S.settings.server ? 'Pega primero tu código.' : 'Pega primero la clave.'); return; }
+  busy(S.settings.server ? 'Comprobando el código...' : 'Probando la conexión con Google...');
   try {
     const a = api();
     const r = await fetch(`${a.base}/models?pageSize=200`, { headers: a.h });

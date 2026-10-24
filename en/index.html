@@ -1,0 +1,188 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>EtxeBerriAI · See your home renovated before you start</title>
+<meta name="description" content="Take a photo of each room and EtxeBerriAI shows you a realistic renovation, with the products to buy and what it costs.">
+<link rel="canonical" href="https://etxeberriai.com/en/"><link rel="alternate" hreflang="es" href="https://etxeberriai.com/"><link rel="alternate" hreflang="eu" href="https://etxeberriai.com/eu/"><link rel="alternate" hreflang="en" href="https://etxeberriai.com/en/"><link rel="alternate" hreflang="ca" href="https://etxeberriai.com/ca/"><link rel="alternate" hreflang="fr" href="https://etxeberriai.com/fr/"><link rel="alternate" hreflang="x-default" href="https://etxeberriai.com/">
+<meta property="og:title" content="EtxeBerriAI · See your home renovated before you start">
+<meta property="og:description" content="Realistic AI photos of your renovation, a 3D floor plan of your home and a shopping list with prices.">
+<meta property="og:url" content="https://etxeberriai.com/en/"><meta property="og:image" content="https://etxeberriai.com/icon-512.png">
+<link rel="icon" href="../icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="theme-color" content="#335c49">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Landing: hero with the live 3D demo, how it works, audiences, pricing, waiting list, FAQ */
+:root{
+  --bg:#f3f5f0; --panel:#fbfcf9; --fg:#1d231f; --muted:#56615a; --line:#d3d9cf; --accent:#335c49; --accent-fg:#f4f7f2; --soft:#e2eadf; --warn:#9a3b25;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif; --f-body:"IBM Plex Sans","Segoe UI",Roboto,sans-serif; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121613; --panel:#1a201c; --fg:#e5eae4; --muted:#9aa59d; --line:#2c342f; --accent:#8fc0a6; --accent-fg:#102017; --soft:#1f2b24; --warn:#f0a58c; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121613; --panel:#1a201c; --fg:#e5eae4; --muted:#9aa59d; --line:#2c342f; --accent:#8fc0a6; --accent-fg:#102017; --soft:#1f2b24; --warn:#f0a58c; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 var(--f-body)}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 max(16px, env(safe-area-inset-left, 0px))}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:16px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font:700 1.15rem var(--f-display);text-decoration:none;margin-right:auto}
+.logo img{width:30px;height:30px;border-radius:8px}
+nav a{font-size:.92rem;text-decoration:none;color:var(--muted)}
+nav a:hover{color:var(--fg)}
+nav{display:flex;gap:18px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 .95rem var(--f-body);padding:11px 18px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);text-decoration:none;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:-.015em;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.05}
+h2{font-size:clamp(1.5rem,3.2vw,2.2rem);line-height:1.15}
+h3{font-size:1.1rem}
+.lead{font-size:1.15rem;color:var(--muted);max-width:36em}
+section{padding:64px 0}
+.hero{padding:48px 0 32px;display:grid;grid-template-columns:1fr 1.15fr;gap:40px;align-items:center}
+.hero .ctas{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.demo{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
+.demo iframe{display:block;width:100%;height:440px;border:0}
+.demo p{margin:0;padding:10px 14px;font-size:.84rem;color:var(--muted);border-top:1px solid var(--line)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card p{margin:8px 0 0;color:var(--muted);font-size:.95rem}
+.num{font:700 .8rem var(--f-display);letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+.prices{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:28px}
+.price{display:flex;flex-direction:column;gap:6px}
+.price.hl{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.price b{font:700 1.9rem var(--f-display)}
+.price small{color:var(--muted)}
+.price ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:.92rem}
+.band{background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+form{display:grid;gap:12px;max-width:520px;margin-top:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+input[type=email],select{flex:1;min-width:200px;font:1rem var(--f-body);padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--muted)}
+.check input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent)}
+.msg{min-height:1.4em;font-size:.95rem}
+.msg.err{color:var(--warn)}
+details{border-bottom:1px solid var(--line);padding:14px 0}
+summary{cursor:pointer;font-weight:600}
+details p{color:var(--muted);margin:8px 0 0}
+footer{padding:32px 0 48px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
+  .prices{grid-template-columns:1fr 1fr}
+  nav a.hide{display:none}
+  .demo iframe{height:380px}
+}
+@media (max-width:520px){.prices{grid-template-columns:1fr} section{padding:44px 0} nav{gap:12px}}
+
+.lang{font:.88rem var(--f-body);padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--fg);min-width:0;flex:none}
+.tagline{font-size:.9rem;color:var(--muted);margin:10px 0 0}
+</style></head><body>
+<header><div class="wrap">
+  <a class="logo" href="./"><img src="../icon.svg" alt="">EtxeBerriAI</a>
+  <nav><a class="hide" href="#como">How it works</a><a class="hide" href="#precios">Pricing</a>
+  <select class="lang" id="lang" aria-label="Language"><option value="es">Castellano</option><option value="eu">Euskara</option><option value="en" selected>English</option><option value="ca">Català</option><option value="fr">Français</option></select><a class="btn pri" href="#lista">Join</a></nav>
+</div></header>
+<main>
+  <div class="wrap hero">
+    <div>
+      <h1>See how your home will look before you renovate.</h1>
+      <p class="lead">Take a photo of each room and EtxeBerriAI shows you the renovation in realistic photos, together with the products to do it and what it costs.</p>
+      <div class="ctas"><a class="btn pri" href="#lista">Join the waiting list</a><a class="btn" href="../app/">Try the app</a></div>
+      <p class="tagline">“Etxe berri” means “new home” in Basque.</p>
+    </div>
+    <figure class="demo" style="margin:0">
+      <iframe src="../plano3d/?demo" title="Demo: 3D floor plan of a real house, current state and proposal" loading="lazy"></iframe>
+      <p>Real demo: the ground floor of a house in the valley. Tap «Propuesta» to see the renovation and turn the model with your finger.</p>
+    </figure>
+  </div>
+
+  <section id="como"><div class="wrap">
+    <h2>From photo to shopping list in three steps</h2>
+    <div class="grid3">
+      <div class="card"><div class="num">Step 1</div><h3>Photos or floor plan</h3><p>Take photos of the room from the corners or upload a sketch of the floor. No measuring needed.</p></div>
+      <div class="card"><div class="num">Step 2</div><h3>A realistic proposal</h3><p>The AI keeps your home, your light and whatever you want to keep, and changes only what you choose: paint, floors, furniture, lighting.</p></div>
+      <div class="card"><div class="num">Step 3</div><h3>Shopping list and budget</h3><p>Every change comes with real products from Leroy Merlin, IKEA and other shops, the total price and a PDF report.</p></div>
+    </div>
+  </div></section>
+
+  <section class="band"><div class="wrap">
+    <h2>For people who renovate and people who sell renovations</h2>
+    <div class="grid3">
+      <div class="card"><h3>Homeowners</h3><p>Decide together before spending a euro. Compare versions and give your builder a final list.</p></div>
+      <div class="card"><h3>Builders and interior designers</h3><p>Show clients how it will look on the first visit and hand over a PDF with your logo, the before and after and the materials budget.</p></div>
+      <div class="card"><h3>Estate agents</h3><p>Show the potential of a property that needs work and sell faster, without works or physical home staging.</p></div>
+    </div>
+  </div></section>
+
+  <section id="precios"><div class="wrap">
+    <h2>Simple pricing, no commitment</h2>
+    <p class="lead">You only pay when you use it. Launch prices for the waiting list.</p>
+    <div class="prices">
+      <div class="card price"><h3>Trial</h3><b>0 €</b><small>forever</small><ul><li>3 renovated photos</li><li>3D floor plan</li><li>Shopping list</li></ul></div>
+      <div class="card price"><h3>Room</h3><b>9 €</b><small>one-off payment</small><ul><li>30 photos</li><li>For one or two rooms</li></ul></div>
+      <div class="card price hl"><h3>Home</h3><b>19 €</b><small>one-off payment</small><ul><li>80 photos</li><li>2 before-and-after videos</li><li>PDF report</li></ul></div>
+      <div class="card price"><h3>Professional</h3><b>29 €</b><small>per month + VAT</small><ul><li>300 photos a month</li><li>Unlimited clients</li><li>PDF with your logo</li></ul></div>
+    </div>
+  </div></section>
+
+  <section id="lista" class="band"><div class="wrap">
+    <h2>Join and we will let you know on launch day</h2>
+    <p class="lead">The first people on the list get extra photos for free.</p>
+    <form id="wl" novalidate>
+      <div class="row"><input type="email" id="email" name="email" placeholder="you@email.com" autocomplete="email" required aria-label="Email" maxlength="200">
+        <select id="profile" aria-label="Who you are"><option value="particular">I am renovating my home</option><option value="reformista">I am a builder or interior designer</option><option value="inmobiliaria">I work at an estate agency</option><option value="otro">Other</option></select></div>
+      <label class="check"><input type="checkbox" id="consent"> <span>I agree that EtxeBerriAI stores my email only to tell me about the launch. I can ask for it to be deleted at any time.</span></label>
+      <div class="row"><button class="btn pri" type="submit" id="send">Sign me up</button></div>
+      <div class="msg" id="wl-msg" role="status"></div>
+    </form>
+  </div></section>
+
+  <section><div class="wrap">
+    <h2>Frequently asked questions</h2>
+    <details><summary>Do I need to know about design?</summary><p>No. You pick a style and how much you want to change, and the AI suggests the rest. You can switch each change on or off.</p></details>
+    <details><summary>Are the photos real?</summary><p>They are images generated with artificial intelligence from your photos and are labelled as such. They are a guide to help you decide, not a technical project.</p></details>
+    <details><summary>What happens to the photos of my home?</summary><p>Your projects are stored on your phone. To create each proposal, the photo is sent to Google’s AI (Gemini) on its paid tier, which does not use your data for training.</p></details>
+    <details><summary>Are product prices reliable?</summary><p>They are each shop’s reference prices. Some shopping links are affiliate links: if you buy through them we receive a small commission at no cost to you.</p></details>
+    <details><summary>Which languages is it in?</summary><p>The website is in Spanish, Basque, English, Catalan and French. The app is in Spanish for now; the other languages arrive with the launch.</p></details>
+  </div></section>
+</main>
+<footer><div class="wrap">EtxeBerriAI · Renovation with AI. Proposal images are generated with artificial intelligence and are for guidance only.</div></footer>
+<script>
+(function () {
+  'use strict';
+  const API = "https://api.etxeberriai.com";
+  const LANG = 'en', LANGS = ["es", "eu", "en", "ca", "fr"], M = {"email": "Check your email address, something seems to be missing.", "consent": "Tick the box so we can add you to the list.", "soon": "The list opens in a few days. Meanwhile you can try the app.", "saving": "Saving...", "ok": "You are on the list! We will let you know on launch day.", "err": "Could not save. Please try again."};
+  const ls = (k, v) => { try { return v === undefined ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch { return null; } };
+  // First visit to the Spanish root: follow the device language once. A choice in the selector always wins.
+  if (LANG === 'es' && !ls('lang')) {
+    const want = (navigator.languages || [navigator.language || '']).map(x => String(x).slice(0, 2).toLowerCase()).find(x => LANGS.includes(x));
+    if (want && want !== 'es') { ls('lang', want); location.replace(want + '/' + location.hash); return; }
+  }
+  document.getElementById('lang').addEventListener('change', e => {
+    const l = e.target.value; ls('lang', l);
+    location.href = (LANG === 'es' ? '' : '../') + (l === 'es' ? '' : l + '/') + location.hash;
+  });
+  const f = document.getElementById('wl'), m = document.getElementById('wl-msg'), b = document.getElementById('send');
+  const say = (t, err) => { m.textContent = t; m.className = 'msg' + (err ? ' err' : ''); };
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) return say(M.email, true);
+    if (!document.getElementById('consent').checked) return say(M.consent, true);
+    if (!API) return say(M.soon);
+    b.disabled = true; say(M.saving);
+    try {
+      const r = await fetch(API + '/waitlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent: true, profile: document.getElementById('profile').value, source: location.hostname + '/' + LANG }) });
+      if (!r.ok) throw new Error(String(r.status));
+      f.reset(); say(M.ok);
+    } catch (err) { say(M.err, true); }
+    finally { b.disabled = false; }
+  });
+})();
+</script>
+</body></html>
