@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#335c49"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Etxea"><meta name="description" content="Reforma vuestra casa con IA: fotos y vídeos realistas, diseño editable y lista de compra."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-180.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body><title>Etxea Reforma</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#335c49"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="EtxeBerriAI"><meta name="description" content="Reforma vuestra casa con IA: fotos y vídeos realistas, diseño editable y lista de compra."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-180.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body><title>EtxeBerriAI · Reforma con IA</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -609,7 +609,7 @@ function claudeErr(e) {
 async function imgPart(blob, max) { const s = await shrink(blob, max, .9); return { type: 'image', mime_type: 'image/jpeg', data: await blobB64(s.blob) }; }
 function gemErr(status, j) {
   const msg = j?.error?.message || j?.message || '';
-  if (status === 402) return 'No te quedan créditos en el servidor de Etxea.';
+  if (status === 402) return 'No te quedan créditos en EtxeBerriAI.';
   if (status === 401) return 'El código de acceso no es válido. Revísalo en Ajustes.';
   if (/api key not valid|API_KEY_INVALID/i.test(msg)) return 'La clave de Google Gemini no es válida. Revísala en Ajustes.';
   if (status === 429) return 'Google ha limitado las peticiones (cuota). Espera un minuto o activa la facturación en Google AI Studio.';
@@ -846,7 +846,7 @@ async function printReport() {
     }
     let el = document.getElementById('print'); if (!el) { el = document.createElement('div'); el.id = 'print'; document.body.append(el); }
     el.innerHTML = `<h1>${esc(p.name || 'Propuesta de reforma')}</h1><div>${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}${grand ? ' · Presupuesto en materiales: <b>' + eur(grand) + '</b>' : ''}</div>${parts.join('')}
-      <p class="rp-foot">Las imágenes de propuesta están generadas con inteligencia artificial y son orientativas. Precios de referencia de cada tienda en el momento de la propuesta; no incluyen mano de obra. Hecho con Etxea.</p>`;
+      <p class="rp-foot">Las imágenes de propuesta están generadas con inteligencia artificial y son orientativas. Precios de referencia de cada tienda en el momento de la propuesta; no incluyen mano de obra. Hecho con EtxeBerriAI.</p>`;
     await Promise.all([...el.querySelectorAll('img')].map(i => i.complete ? 0 : new Promise(res => { i.onload = i.onerror = res; })));
     busy(null);
     window.print();
@@ -858,7 +858,7 @@ async function aiMark(blob) {
     const bmp = await createImageBitmap(blob);
     const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
     const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
-    const fs = Math.max(14, Math.round(bmp.width * 0.018)), pad = Math.round(fs * 0.55), text = 'Generada con IA · Etxea';
+    const fs = Math.max(14, Math.round(bmp.width * 0.018)), pad = Math.round(fs * 0.55), text = 'Generada con IA · EtxeBerriAI';
     g.font = `600 ${fs}px -apple-system, BlinkMacSystemFont, sans-serif`;
     const w = g.measureText(text).width + pad * 2, h = fs + pad * 1.4, x = bmp.width - w - pad, y = bmp.height - h - pad;
     g.fillStyle = 'rgba(0,0,0,.55)'; g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, h / 3); else g.rect(x, y, w, h); g.fill();
@@ -960,7 +960,7 @@ function viewHome() {
   const done = p.rooms.filter(r => r.renders.length).length;
   const bought = p.rooms.reduce((s, r) => s + r.design.products.filter(x => x.bought && x.on !== false).reduce((a, x) => a + num(x.price) * (num(x.qty) || 1), 0), 0);
   const fresh = !p.rooms.some(r => r.photos.length);
-  return `${topbar(p.name, 'Reforma con IA')}
+  return `${topbar(p.name, 'EtxeBerriAI · Reforma con IA')}
   <div class="wrap">
     ${aiStatusNote()}
     <div class="kpis"><div class="kpi"><b>${done}/${p.rooms.length}</b><span>Estancias con propuesta</span></div><div class="kpi"><b>${nRenders}</b><span>Fotos generadas</span></div><div class="kpi"><b>${eur(total)}</b><span>Presupuesto estimado</span></div><div class="kpi"><b>${eur(bought)}</b><span>Ya comprado</span></div></div>
@@ -1216,7 +1216,7 @@ function viewShop() {
     ${budget ? `<div class="bar ${total > budget ? 'over' : ''}"><i style="width:${Math.min(100, total / budget * 100)}%"></i></div><p class="small muted">${total > budget ? `Os pasáis ${eur(total - budget)} del presupuesto (${eur(budget)}).` : `Quedan ${eur(budget - total)} del presupuesto (${eur(budget)}).`}</p>` : ''}
     <div class="row"><div class="seg" style="flex:1;min-width:240px">${[['all', 'Todo'], ['todo', 'Pendiente'], ['done', 'Comprado']].map(([k, l]) => `<button data-act="shop-filter" data-k="${k}" aria-selected="${f === k}">${l}</button>`).join('')}</div>
       <button class="btn sm" data-act="copy-list">${ic('copy')} Copiar</button><button class="btn sm" data-act="csv">${ic('download')} CSV</button><button class="btn sm" data-act="report">${ic('download')} Informe PDF</button></div>
-    ${affOn() ? `<p class="small muted">Algunos enlaces de compra son de afiliado: si compras a través de ellos, Etxea recibe una pequeña comisión sin coste para ti.</p>` : ''}
+    ${affOn() ? `<p class="small muted">Algunos enlaces de compra son de afiliado: si compras a través de ellos, EtxeBerriAI recibe una pequeña comisión sin coste para ti.</p>` : ''}
     ${rooms.length ? rooms.map(r => { const l = visible.filter(a => a.r === r); return `<section class="card"><div class="sec-h"><button class="btn ghost sm" data-act="room" data-id="${r.id}" style="padding-left:0"><h3>${esc(r.name)}</h3>${ic('chev')}</button><span class="mono small">${eur(sum(l))}</span></div><div>${l.map(a => prodRow(a.x, r.id)).join('')}</div></section>`; }).join('')
     : `<div class="empty">${ic('cart')}<b>${all.length ? 'Nada en este filtro' : 'Todavía no hay productos'}</b><span class="small">Pide una propuesta con IA en cualquier estancia y aquí aparecerá todo lo necesario para comprarla.</span></div>`}
   </div>`;
@@ -1240,7 +1240,7 @@ function viewSettings() {
       <p class="small muted">Genera las fotos (Nano Banana), los vídeos (Omni) y el diseño. Crea una clave en Google AI Studio y activa la facturación para las imágenes: cada foto cuesta unos céntimos. La clave se guarda solo en este dispositivo.</p>
       <label class="f">Clave de API<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="AIza..."></label>
       <div class="row"><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">${ic('ext')} Conseguir clave</a><button class="btn sm" data-act="test-key">${ic('check')} Probar conexión</button></div>
-      <details class="adv"${s.server ? ' open' : ''}><summary>Usar el servidor de Etxea (código de acceso)</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+      <details class="adv"${s.server ? ' open' : ''}><summary>Usar el servidor de EtxeBerriAI (código de acceso)</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
         <p class="small muted">Si tienes un código de acceso, pon aquí la dirección del servidor y pega el código en «Clave de API». No necesitas clave de Google.</p>
         <label class="f">Dirección del servidor<input class="in mono" id="s-server" inputmode="url" autocomplete="off" value="${esc(s.server || '')}" placeholder="https://etxea-api.ejemplo.workers.dev"></label>
       </div></details>
@@ -1262,7 +1262,7 @@ function viewSettings() {
       <div class="seg">${[['', 'Sistema'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([k, l]) => `<button data-act="theme" data-k="${k}" aria-selected="${s.theme === k}">${l}</button>`).join('')}</div>
     </section>
     <section class="card"><h2>Empezar de cero</h2><p class="small muted">Borra todas las estancias, fotos y propuestas de este dispositivo.</p><button class="btn danger" data-act="reset">${ic('trash')} Borrar todo</button></section>
-    <p class="small muted" style="text-align:center">Etxea Reforma · v1.0</p>
+    <p class="small muted" style="text-align:center">EtxeBerriAI · v1.1</p>
   </div>`;
 }
 
@@ -2044,7 +2044,7 @@ async function exportProject() {
 async function importProject() {
   const f = await pickFile('f-json'); if (!f) return;
   let data; try { data = JSON.parse(await f.text()); } catch { throw new UserErr('El archivo no es un proyecto válido.'); }
-  if (data?.app !== 'etxea-reforma' || !data.project) throw new UserErr('El archivo no es un proyecto de Etxea Reforma.');
+  if (data?.app !== 'etxea-reforma' || !data.project) throw new UserErr('El archivo no es un proyecto de EtxeBerriAI.');
   confirmSheet('Importar proyecto', `Se sustituirá el proyecto actual por "${data.project.name}" (${data.project.rooms.length} estancias).`, 'Importar', async () => {
     busy('Importando...');
     try {
