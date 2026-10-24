@@ -50,7 +50,12 @@ jobs:
       - name: Publicar
         if: steps.check.outputs.ready == 'true'
         run: |
+          set -o pipefail
           npx wrangler deploy | tee deploy.log
           printf '%s' "$GEMINI_KEY" | npx wrangler secret put GEMINI_KEY
-          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
-          echo "Servidor publicado en: $URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Servidor publicado en: https://api.etxeberriai.com" >> "$GITHUB_STEP_SUMMARY"
+      - name: Comprobar que responde
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          for i in 1 2 3 4 5 6; do curl -fsS https://api.etxeberriai.com/health && exit 0; sleep 10; done
+          echo "El servidor no responde todavía en api.etxeberriai.com (el certificado puede tardar unos minutos)." >> "$GITHUB_STEP_SUMMARY"
