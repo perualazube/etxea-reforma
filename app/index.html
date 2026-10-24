@@ -119,13 +119,44 @@ label.chip{cursor:pointer}
 .rcard .cover .ph{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.74rem}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-width:0}
-.kpi b{display:block;font:500 1.05rem var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi b{display:block;font:700 1.2rem var(--f-display);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpi span{font-size:.72rem;color:var(--muted)}
 .how{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;counter-reset:st}
 .how div{display:flex;flex-direction:column;gap:4px;font-size:.84rem}
 .how div b{font-family:var(--f-display);font-size:.95rem}
 .how div em{font-style:normal;font:600 .7rem var(--f-mono);color:var(--accent)}
 @media (max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}.how{grid-template-columns:1fr}}
+.rcard .cover.none{aspect-ratio:16/9;background:linear-gradient(135deg,var(--panel-2),var(--accent-soft))}
+/* hero + style cards + onboarding */
+.hero{border-radius:16px;padding:18px 16px;background:linear-gradient(140deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#000));color:var(--accent-fg);display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.hero h2{font-size:1.3rem}
+.hero p{font-size:.9rem;opacity:.88;max-width:46ch}
+.hero .btn{background:var(--accent-fg);color:var(--accent);border-color:transparent}
+.hero .btn.ghost{background:rgba(255,255,255,.12);color:var(--accent-fg)}
+.hero .sws{position:absolute;right:-34px;top:-30px;display:grid;grid-template-columns:repeat(4,20px);gap:5px;transform:rotate(12deg);opacity:.28;pointer-events:none}
+.hero>:not(.sws){position:relative}
+.hero .sws i{width:22px;height:22px;border-radius:6px;display:block}
+.styles{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+.styles.scroll{display:flex;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x proximity}
+.styles.scroll .stc{flex:0 0 122px;scroll-snap-align:start}
+.stc{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:0;overflow:hidden;text-align:left;display:flex;flex-direction:column}
+.stc .sw4{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;height:40px}
+.stc b{display:block;padding:7px 9px;font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stc[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent)}
+.stc[aria-pressed="true"] b{color:var(--accent)}
+.onb{min-height:100dvh;display:flex;flex-direction:column}
+.onb .wrap{max-width:620px;gap:16px;padding-top:max(24px,env(safe-area-inset-top,0px))}
+.onb .lead{font:700 1.7rem/1.12 var(--f-display);letter-spacing:-.02em;text-wrap:balance}
+.onb .mosaic{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.onb .mosaic div{border-radius:10px;overflow:hidden;display:grid;grid-template-rows:3fr 1fr;aspect-ratio:1}
+.onb .mosaic div i{display:block}
+.onb .mosaic div span{display:grid;grid-template-columns:repeat(3,1fr)}
+.steps3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.steps3 div{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px;font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.steps3 b{color:var(--fg);font:600 .88rem var(--f-display)}
+.th.job .t{font:500 .72rem var(--f-mono);margin-top:2px}
+.qph{border-radius:12px;overflow:hidden;max-height:240px;display:grid;place-items:center;background:var(--panel-2)}
+.qph img{display:block;max-width:100%;max-height:240px;object-fit:contain}
 .rcard.add{border-style:dashed;background:transparent;align-items:center;justify-content:center;min-height:150px;gap:6px;color:var(--muted)}
 
 /* plan */
@@ -313,7 +344,19 @@ const IN_ARTIFACT = typeof window.claude === 'object' && window.claude !== null;
 const APP_URL = 'https://perualazube.github.io/etxea-reforma/app/';
 const GEM = 'https://generativelanguage.googleapis.com/v1beta';
 const FLOORS = ['Planta 1', 'Planta 2', 'Sótano', 'Exterior'];
-const STYLES = ['Moderno cálido', 'Nórdico', 'Japandi', 'Mediterráneo', 'Rústico actualizado', 'Industrial suave', 'Contemporáneo', 'Clásico renovado'];
+// Each style: English brief for the image model and four swatches for the style cards.
+const STYLE_INFO = {
+  'Moderno cálido': { en: 'warm modern: off-white walls, natural oak, sage green, matte black details, linen and natural fibres', sw: ['#efe9df', '#c9a77c', '#8a9a7b', '#2b2b2b'] },
+  'Nórdico': { en: 'Scandinavian: white and light grey, pale birch or ash wood, simple functional furniture, wool and cotton textiles, bright and airy', sw: ['#f5f5f2', '#d9d4cb', '#e3cfae', '#9aa5a8'] },
+  'Japandi': { en: 'Japandi: calm and minimal, low furniture, mix of light and dark wood, beige, clay and charcoal, paper lamps, linen', sw: ['#ede6da', '#b89f7e', '#5b4a3a', '#3a3a36'] },
+  'Mediterráneo': { en: 'Mediterranean: lime-washed white walls, terracotta, natural stone, rattan and jute, olive and sea-blue accents', sw: ['#f6f2ea', '#c56b45', '#2f6f8f', '#8c8a5a'] },
+  'Rústico actualizado': { en: 'updated rustic: keep exposed wood and stone, warm whites, rough natural textures, wrought-iron details, cosy modern furniture', sw: ['#ebe2d3', '#8b5e3c', '#6b6f5a', '#3d342c'] },
+  'Industrial suave': { en: 'soft industrial: concrete-look and brick textures, black metal, warm wood, leather, warm filament lighting, softened with textiles and plants', sw: ['#d5d2cc', '#8c8a86', '#a0673f', '#222222'] },
+  'Contemporáneo': { en: 'contemporary: clean lines, neutral whites and greys, large-format surfaces, integrated indirect lighting, a few bold pieces', sw: ['#f2f2f0', '#bdbdbb', '#5e6062', '#1f2a36'] },
+  'Clásico renovado': { en: 'refreshed classic: mouldings and panelling, elegant furniture with modern touches, cream, navy and brass', sw: ['#f3ede1', '#c9b48a', '#24365a', '#b08d57'] }
+};
+const STYLES = Object.keys(STYLE_INFO);
+const HOME_KINDS = ['Piso', 'Casa', 'Chalet', 'Ático', 'Apartamento', 'Local'];
 const INTENSITY = [
   { name: 'Retoque', desc: 'Pintura, textiles, luz y decoración. Muebles y suelos se quedan.', en: 'very light refresh: only paint, textiles, lighting and small decor; furniture, floors and fixtures stay', n: 4 },
   { name: 'Equilibrada', desc: 'Renueva acabados y algunos muebles, aprovechando lo que está bien.', en: 'moderate renovation: refresh finishes and replace only a few pieces, reuse what is in good condition', n: 6 },
@@ -321,7 +364,7 @@ const INTENSITY = [
 ];
 const AREAS = ['Paredes', 'Suelo', 'Techo', 'Iluminación', 'Carpintería', 'Mobiliario', 'Textiles', 'Decoración', 'Cocina', 'Baño', 'Almacenaje', 'Exterior', 'Otros'];
 const ROOM_TYPES = ['Salón', 'Comedor', 'Cocina', 'Dormitorio', 'Baño', 'Despacho', 'Recibidor', 'Escalera', 'Lavandería', 'Vestidor', 'Garaje', 'Bodega', 'Terraza', 'Otra'];
-const DEFAULT_CONTEXT = 'Chalet de dos plantas recién comprado en un valle rural junto a un río. Estilo objetivo: moderno cálido (blancos rotos, madera natural, verde salvia, negro mate en detalles, lino y fibras naturales). Queremos aprovechar muebles y elementos que estén bien (escalera de mármol, sofá, mesa de comedor) y hacer cambios realistas y asumibles, sin obras estructurales.';
+const DEFAULT_CONTEXT = 'Vivienda en España. Queremos aprovechar los muebles y elementos que estén bien y hacer cambios realistas y asumibles, sin obras estructurales.';
 const QUICK_ADJUST = ['Suelo un tono más claro', 'Paredes en verde salvia', 'Quita la alfombra', 'Más luz cálida', 'Cortinas de lino blancas', 'Mantén el sofá original', 'Añade plantas', 'Menos decoración'];
 const DEFAULT_SETTINGS = {
   key: '', server: '', brain: 'auto',
@@ -457,28 +500,18 @@ function newRoom({ name, type = 'Otra', floor = 'Planta 1', changes = [], keep =
     renders: [], videos: [], created: Date.now()
   };
 }
-function seedProject() {
-  const ch = (area, title, detail) => ({ id: uid('c'), area, title, detail, cost: '', on: true, src: 'plan' });
-  const kp = t => ({ id: uid('k'), text: t, note: '', on: true });
-  const WALL = () => ch('Paredes', 'Paredes en blanco roto cálido', 'Pintura plástica mate lavable en blanco roto cálido; techo en el mismo tono para ganar amplitud.');
-  const r = (name, type, floor, changes = [], keep = []) => newRoom({ name, type, floor, changes, keep: keep.map(kp) });
-  const rooms = [
-    r('Cocina', 'Cocina', 'Planta 1', [WALL(), ch('Cocina', 'Frentes de cocina en verde salvia', 'Lacar o vinilar los frentes actuales en verde salvia mate y cambiar los tiradores por negros.')], ['Distribución de la cocina en L', 'Encimera y electrodomésticos']),
-    r('Sala comedor', 'Salón', 'Planta 1', [WALL(), ch('Suelo', 'Parquet acuchillado en tono natural mate', 'Lijar y barnizar el parquet existente en acabado mate natural.'), ch('Textiles', 'Cojines de lino y alfombra de yute', 'Fundas de cojín de lino en tonos arena y alfombra de yute bajo la mesa de centro.'), ch('Iluminación', 'Lámpara colgante de fibra natural', 'Sustituir el plafón del comedor por una lámpara colgante de yute o ratán.')], ['Sofá en L', 'Mesa de comedor y sillas', 'Aparador']),
-    r('Recibidor', 'Recibidor', 'Planta 1', [WALL(), ch('Carpintería', 'Puertas lacadas y tiradores negros', 'Lacar en blanco las puertas y marcos existentes y poner manillas negras mate.')], ['Arcón']),
-    r('Escalera', 'Escalera', 'Planta 1', [ch('Carpintería', 'Barandilla en negro mate', 'Pintar la barandilla metálica en negro mate y el pasamanos en madera natural.')], ['Escalones de mármol']),
-    r('Baño 1', 'Baño', 'Planta 1', [ch('Baño', 'Encimera del lavabo en blanco', 'Cambiar la encimera por una blanca mate y la grifería por negra.')], ['Ducha y sanitarios']),
-    r('Lavandería', 'Lavandería', 'Planta 1', [ch('Almacenaje', 'Armario columna cerrado', 'Armario alto cerrado para ocultar el calentador y los productos de limpieza.')]),
-    r('Dormitorio principal', 'Dormitorio', 'Planta 2'),
-    r('Dormitorio 2', 'Dormitorio', 'Planta 2'),
-    r('Dormitorio 3', 'Dormitorio', 'Planta 2'),
-    r('Baño 2', 'Baño', 'Planta 2'),
-    r('Despacho', 'Despacho', 'Planta 2'),
-    r('Vestidor', 'Vestidor', 'Planta 2'),
-    r('Garaje y bodega', 'Garaje', 'Sótano'),
-    r('Terraza', 'Terraza', 'Exterior')
-  ];
-  return { id: uid('p'), v: 1, name: 'Etxea', context: DEFAULT_CONTEXT, budget: '', plans: [], rooms, videos: [], created: Date.now() };
+const FLOOR_OF = { Terraza: 'Exterior', Garaje: 'Sótano', Bodega: 'Sótano' };
+function uniqueRoomName(type) {
+  const base = type === 'Otra' ? 'Estancia' : type;
+  const names = new Set((cur()?.rooms || []).map(r => r.name));
+  if (!names.has(base)) return base;
+  let i = 2; while (names.has(`${base} ${i}`)) i++; return `${base} ${i}`;
+}
+function starterProject({ name = 'Mi casa', kind = 'Piso', types = [] } = {}) {
+  const p = { id: uid('p'), v: 1, name, kind, context: `${kind} en España. Queremos aprovechar los muebles y elementos que estén bien y hacer cambios realistas y asumibles, sin obras estructurales.`, budget: '', plans: [], rooms: [], videos: [], created: Date.now() };
+  S.project = p;
+  for (const t of types) p.rooms.push(newRoom({ name: uniqueRoomName(t), type: t, floor: FLOOR_OF[t] || 'Planta 1' }));
+  return p;
 }
 
 let saveT = null;
@@ -751,9 +784,9 @@ function renderPrompt(room, refs = []) {
 - It must look like an ordinary smartphone photo taken after the works, not a 3D render or a magazine fantasy. No people, no text, no watermark.
 - Change ONLY what is listed below. Anything not listed stays exactly as it is and in the same place.`,
     `Renovation level: ${it.en}.`,
-    `Style: ${d.style || 'Moderno cálido'} (warm modern).`,
+    `Style: ${(STYLE_INFO[d.style] || STYLE_INFO['Moderno cálido']).en}.`,
     keep.length ? `KEEP exactly as they are: ${keep.join('; ')}.` : '',
-    ch.length ? `CHANGES TO APPLY:\n${lines.join('\n')}` : `CHANGES TO APPLY: a light refresh in the chosen style (paint, textiles, lighting) without replacing furniture.`,
+    ch.length ? `CHANGES TO APPLY:\n${lines.join('\n')}` : `CHANGES TO APPLY: interpret the renovation level and style above with realistic choices a local designer would make for this exact room (walls, floor, lighting, textiles, furniture as the level allows).`,
     d.palette?.length ? `Colour palette: ${d.palette.map(p => `${p.name} ${p.hex}`).join(', ')}.` : '',
     d.notes ? `Owners' notes (Spanish): ${d.notes}` : '',
     refs.length ? `The images after the first one are reference photos from the owners: ${refs.map((r, i) => `image ${i + 2}: ${r.note || 'style or product reference'}`).join('; ')}. Reproduce those items faithfully where they fit in the room.` : '',
@@ -866,6 +899,36 @@ async function aiMark(blob) {
     return await new Promise(res => c.toBlob(b => res(b || blob), 'image/jpeg', .92));
   } catch { return blob; }
 }
+// Before/after side by side (stacked for landscape photos), labelled and with the AI notice, ready to send by WhatsApp.
+async function beforeAfter(beforeBlob, afterBlob) {
+  const [a, b] = await Promise.all([createImageBitmap(beforeBlob), createImageBitmap(afterBlob)]);
+  const land = b.width > b.height * 1.1;
+  const k = Math.min(1, 1400 / (land ? b.width : b.height));
+  const w = Math.round(b.width * k), h = Math.round(b.height * k), gap = Math.round(Math.max(w, h) * .012);
+  const foot = Math.round(Math.max(w, h) * .05);
+  const c = document.createElement('canvas');
+  c.width = land ? w : w * 2 + gap; c.height = (land ? h * 2 + gap : h) + foot;
+  const g = c.getContext('2d');
+  g.fillStyle = '#101412'; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(a, 0, 0, w, h); g.drawImage(b, land ? 0 : w + gap, land ? h + gap : 0, w, h);
+  const fs = Math.round(Math.max(w, h) * .03), pad = Math.round(fs * .6);
+  g.font = `600 ${fs}px -apple-system, BlinkMacSystemFont, sans-serif`; g.textBaseline = 'middle';
+  [['Antes', 0, 0], ['Después', land ? 0 : w + gap, land ? h + gap : 0]].forEach(([t, x, y]) => {
+    const tw = g.measureText(t).width + pad * 2, th = fs + pad;
+    g.fillStyle = 'rgba(0,0,0,.6)'; g.beginPath(); if (g.roundRect) g.roundRect(x + pad, y + pad, tw, th, th / 3); else g.rect(x + pad, y + pad, tw, th); g.fill();
+    g.fillStyle = '#fff'; g.fillText(t, x + pad * 2, y + pad + th / 2);
+  });
+  g.font = `500 ${Math.round(foot * .38)}px -apple-system, BlinkMacSystemFont, sans-serif`; g.fillStyle = '#cfd8d1';
+  g.fillText('«Después» generada con IA · EtxeBerriAI · etxeberriai.com', pad, c.height - foot / 2);
+  return canvasBlob(c, 'image/jpeg', .9);
+}
+async function shareImage(blob, filename, text) {
+  const file = new File([blob], filename, { type: blob.type });
+  if (!IN_ARTIFACT && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: filename, text }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  await saveFile(blob, filename);
+}
 async function saveFile(blob, filename) {
   if (IN_ARTIFACT) {
     if (!AI.downloads) { toast('Esta vista no permite guardar archivos. Ábrelo en la app web.'); return; }
@@ -885,7 +948,7 @@ const slug = s => norm(s).replace(/ /g, '-') || 'etxea';
 /* ================= jobs ================= */
 const Jobs = {
   list: [],
-  add(roomId, label, photoId) { const j = { id: uid('j'), roomId, label, photoId, ctl: new AbortController() }; this.list.push(j); refreshJobs(); return j; },
+  add(roomId, label, photoId) { const j = { id: uid('j'), roomId, label, photoId, t0: Date.now(), ctl: new AbortController() }; this.list.push(j); refreshJobs(); return j; },
   done(j) { this.list = this.list.filter(x => x !== j); refreshJobs(); },
   forRoom(id) { return this.list.filter(j => j.roomId === id); }
 };
@@ -893,6 +956,8 @@ function refreshJobs() {
   const el = $('#jobs-slot'); if (el) el.innerHTML = jobsPill();
   if (S.nav.name === 'room' && S.nav.tab === 'res' && !S.viewer) renderView();
 }
+const secs = j => Math.round((Date.now() - j.t0) / 1000) + ' s';
+setInterval(() => { $$('[data-job-t]').forEach(el => { const j = Jobs.list.find(x => x.id === el.dataset.jobT); if (j) el.textContent = secs(j); }); }, 1000);
 const jobsPill = () => Jobs.list.length ? `<button class="jobs-pill" data-act="jobs"><span class="dot"></span>${Jobs.list.length} en curso</button>` : '';
 
 /* ================= navigation ================= */
@@ -912,7 +977,7 @@ window.addEventListener('popstate', () => {
 
 /* ================= render ================= */
 function render() {
-  if (!S.project) return;
+  if (!S.project) { if (S.ready) renderOnboarding(); return; }
   const n = S.nav.name;
   const navBtn = (k, label, icon) => `<button data-act="tab" data-k="${k}" aria-current="${(n === k || (k === 'home' && (n === 'room' || n === 'plan'))) ? 'page' : 'false'}">${ic(icon)}<span>${label}</span></button>`;
   $('#app').innerHTML = `<div id="view"></div><nav class="nav" aria-label="Secciones"><div class="in">${navBtn('home', 'Casa', 'home')}${navBtn('shop', 'Compra', 'cart')}${navBtn('settings', 'Ajustes', 'gear')}</div></nav>`;
@@ -947,10 +1012,18 @@ function aiStatusNote() {
 function roomCover(r) {
   const fav = r.renders.find(x => x.fav) || r.renders[r.renders.length - 1];
   const mid = fav?.mid || r.photos[0]?.mid;
-  return mid ? `<div class="cover" data-mid="${mid}">${fav ? '<span class="badge tag acc">Reformada</span>' : ''}</div>` : `<div class="cover"><span class="ph">${ic('camera')}Añadir fotos</span></div>`;
+  return mid ? `<div class="cover" data-mid="${mid}">${fav ? '<span class="badge tag acc">Reformada</span>' : ''}</div>` : `<div class="cover none"><span class="ph">${ic('camera')}Añadir fotos</span></div>`;
 }
 function roomStage(r) { return r.photos.length ? (r.design.products.length ? (r.renders.length ? (r.renders.some(x => x.fav) ? 4 : 3) : 2) : 1) : 0; }
 function roomCost(r) { return r.design.products.filter(p => p.on !== false).reduce((s, p) => s + num(p.price) * (num(p.qty) || 1), 0); }
+function heroCard() {
+  const sw = Object.values(STYLE_INFO).flatMap(x => x.sw).slice(0, 16);
+  return `<section class="hero"><div class="sws" aria-hidden="true">${sw.map(c => `<i style="background:${c}"></i>`).join('')}</div>
+    <h2>Reforma una foto en segundos</h2>
+    <p>Haz una foto de cualquier estancia, elige un estilo y mirad cómo quedaría. Después la afináis y sacáis la lista de compra.</p>
+    <div class="row"><label class="btn" data-act="quick-cam" for="f-cam" role="button" tabindex="0">${ic('camera')} Hacer foto</label><label class="btn ghost" data-act="quick-img" for="f-img" role="button" tabindex="0">${ic('image')} Galería</label></div>
+  </section>`;
+}
 function viewHome() {
   const p = cur();
   const floors = [...new Set([...FLOORS, ...p.rooms.map(r => r.floor)])].filter(f => p.rooms.some(r => r.floor === f));
@@ -959,32 +1032,58 @@ function viewHome() {
   const plan = p.plans[0];
   const done = p.rooms.filter(r => r.renders.length).length;
   const bought = p.rooms.reduce((s, r) => s + r.design.products.filter(x => x.bought && x.on !== false).reduce((a, x) => a + num(x.price) * (num(x.qty) || 1), 0), 0);
-  const fresh = !p.rooms.some(r => r.photos.length);
+  const card = r => `<button class="rcard" data-act="room" data-id="${r.id}">${roomCover(r)}<div class="meta"><b>${esc(r.name)}</b><div class="s"><span>${r.photos.length} fotos</span><span>${r.renders.length} propuestas</span>${roomCost(r) ? `<span class="mono">${eur(roomCost(r))}</span>` : ''}</div><div class="steps" aria-label="Progreso: ${roomStage(r)} de 4"><i class="${roomStage(r) > 0 ? 'on' : ''}"></i><i class="${roomStage(r) > 1 ? 'on' : ''}"></i><i class="${roomStage(r) > 2 ? 'on' : ''}"></i><i class="${roomStage(r) > 3 ? 'on' : ''}"></i></div></div></button>`;
+  const addBtn = `<button class="rcard add" data-act="add-room">${ic('plus')}<span>Añadir estancia</span></button>`;
   return `${topbar(p.name, 'EtxeBerriAI · Reforma con IA')}
   <div class="wrap">
     ${aiStatusNote()}
-    <div class="kpis"><div class="kpi"><b>${done}/${p.rooms.length}</b><span>Estancias con propuesta</span></div><div class="kpi"><b>${nRenders}</b><span>Fotos generadas</span></div><div class="kpi"><b>${eur(total)}</b><span>Presupuesto estimado</span></div><div class="kpi"><b>${eur(bought)}</b><span>Ya comprado</span></div></div>
-    ${fresh ? `<section class="card"><h2>Cómo funciona</h2><div class="how">
-      <div><em>PASO 1</em><b>Fotos o vídeo</b><span class="muted">Abre una estancia y haz fotos desde las esquinas, o graba un vídeo.</span></div>
-      <div><em>PASO 2</em><b>Diseño editable</b><span class="muted">La IA propone cambios realistas con sus productos. Activad, quitad o editad cada detalle.</span></div>
-      <div><em>PASO 3</em><b>Fotos, vídeo y compra</b><span class="muted">Genera la estancia reformada, ajústala con texto o por zonas y compra lo que veis.</span></div>
-    </div></section>` : ''}
+    ${heroCard()}
+    ${nRenders || total ? `<div class="kpis"><div class="kpi"><b>${done}/${p.rooms.length}</b><span>Estancias con propuesta</span></div><div class="kpi"><b>${nRenders}</b><span>Fotos generadas</span></div><div class="kpi"><b>${eur(total)}</b><span>Presupuesto estimado</span></div><div class="kpi"><b>${eur(bought)}</b><span>Ya comprado</span></div></div>` : ''}
+    ${floors.length > 1 ? floors.map((f, i) => `<section><div class="sec-h"><h2>${esc(f)}</h2><span class="small muted">${p.rooms.filter(r => r.floor === f).length} estancias</span></div>
+      <div class="rooms">${p.rooms.filter(r => r.floor === f).map(card).join('')}${i === floors.length - 1 ? addBtn : ''}</div></section>`).join('')
+    : `<section><div class="sec-h"><h2>Estancias</h2>${p.rooms.length ? `<span class="small muted">${p.rooms.length}</span>` : ''}</div><div class="rooms">${p.rooms.map(card).join('')}${addBtn}</div></section>`}
+    ${nRenders ? `<section>
+      <div class="sec-h"><h2>Vídeo de la casa reformada</h2></div>
+      <div class="card"><p class="small muted">Un recorrido por todas las estancias con el antes y el después, siguiendo el orden de las plantas. Usa la propuesta favorita de cada estancia (★) y los vídeos con IA que hayáis generado.</p>
+        <div class="row"><button class="btn pri" data-act="house-video">${ic('film')} Crear recorrido</button></div>
+        ${p.videos.length ? `<div class="hscroll">${p.videos.map(v => `<button class="th" data-act="play-video" data-mid="${v.thumb || ''}" data-vid="${v.id}" style="flex-basis:150px;aspect-ratio:16/10;background-color:#222"><span class="lbl">${ic('play')} Recorrido · ${fmtDate(v.at)}</span></button>`).join('')}</div>` : ''}
+      </div>
+    </section>` : ''}
     <section>
       <div class="sec-h"><h2>Plano</h2><div class="row">${IN_ARTIFACT ? '' : `<a class="btn sm" href="../plano3d/">Plano 3D ${ic('chev')}</a>`}<button class="btn sm" data-act="open-plan">${plan ? 'Abrir plano' : 'Subir plano'} ${ic('chev')}</button></div></div>
       ${plan ? `<button class="plan preview" data-act="open-plan" style="padding:0;text-align:left"><img data-mid="${plan.mid}" alt="Plano ${esc(plan.name)}">${p.rooms.filter(r => r.pin?.planId === plan.id).map(r => `<span class="pin" style="left:${r.pin.x}%;top:${r.pin.y}%">${esc(r.name)}</span>`).join('')}</button>`
       : `<button class="plan plan-empty" data-act="open-plan" style="width:100%">${ic('plan')}<b>Sube el plano de la casa</b><span class="small">Foto o PDF. La IA detecta las estancias, las sitúa en el plano y crea una maqueta 3D reformada.</span></button>`}
     </section>
-    ${floors.map(f => `<section><div class="sec-h"><h2>${esc(f)}</h2><span class="small muted">${p.rooms.filter(r => r.floor === f).length} estancias</span></div>
-      <div class="rooms">${p.rooms.filter(r => r.floor === f).map(r => `<button class="rcard" data-act="room" data-id="${r.id}">${roomCover(r)}<div class="meta"><b>${esc(r.name)}</b><div class="s"><span>${r.photos.length} fotos</span><span>${r.renders.length} propuestas</span>${roomCost(r) ? `<span class="mono">${eur(roomCost(r))}</span>` : ''}</div><div class="steps" aria-label="Progreso: ${roomStage(r)} de 4"><i class="${roomStage(r) > 0 ? 'on' : ''}"></i><i class="${roomStage(r) > 1 ? 'on' : ''}"></i><i class="${roomStage(r) > 2 ? 'on' : ''}"></i><i class="${roomStage(r) > 3 ? 'on' : ''}"></i></div></div></button>`).join('')}</div></section>`).join('')}
-    <section><button class="rcard add" data-act="add-room" style="min-height:64px;flex-direction:row">${ic('plus')}<span>Añadir estancia</span></button></section>
-    <section>
-      <div class="sec-h"><h2>Vídeo de la casa reformada</h2></div>
-      <div class="card"><p class="small muted">Un recorrido por todas las estancias con el antes y el después, siguiendo el orden de las plantas. Usa la propuesta favorita de cada estancia (★) y los vídeos con IA que hayáis generado.</p>
-        <div class="row"><button class="btn pri" data-act="house-video" ${nRenders ? '' : 'disabled'}>${ic('film')} Crear recorrido</button>${!nRenders ? '<span class="small muted">Primero genera alguna propuesta.</span>' : ''}</div>
-        ${p.videos.length ? `<div class="hscroll">${p.videos.map(v => `<button class="th" data-act="play-video" data-mid="${v.thumb || ''}" data-vid="${v.id}" style="flex-basis:150px;aspect-ratio:16/10;background-color:#222"><span class="lbl">${ic('play')} Recorrido · ${fmtDate(v.at)}</span></button>`).join('')}</div>` : ''}
-      </div>
-    </section>
   </div>`;
+}
+
+/* ---------- onboarding (first run on this device) ---------- */
+function renderOnboarding() {
+  const types = new Set(['Salón', 'Cocina', 'Dormitorio', 'Baño']);
+  let kind = 'Piso';
+  $('#app').innerHTML = `<div class="onb"><div class="wrap">
+    <div class="brand"><div class="mark">${ic('home')}</div><b style="font-family:var(--f-display)">EtxeBerriAI</b></div>
+    <p class="lead">Mirad vuestra casa reformada antes de empezar la obra.</p>
+    <p class="muted">Fotos realistas de cada estancia con la reforma hecha, un diseño que podéis editar y la lista de compra con productos reales.</p>
+    <div class="mosaic" aria-hidden="true">${STYLES.slice(0, 4).map(n => { const c = STYLE_INFO[n].sw; return `<div><i style="background:${c[0]}"></i><span><i style="background:${c[1]}"></i><i style="background:${c[2]}"></i><i style="background:${c[3]}"></i></span></div>`; }).join('')}</div>
+    <div class="steps3"><div><b>1 · Foto</b>De cualquier estancia, con el móvil.</div><div><b>2 · Estilo</b>8 estilos y 3 niveles de reforma.</div><div><b>3 · Resultado</b>Ajustadlo con palabras y comprad.</div></div>
+    <section class="card">
+      <label class="f">Nombre del proyecto<input class="in" id="ob-name" placeholder="p. ej. Casa de la playa" autocomplete="off"></label>
+      <div class="eyebrow">Tipo de vivienda</div>
+      <div class="chips" id="ob-kind">${HOME_KINDS.map(k => `<button class="chip" data-k="${k}" aria-pressed="${k === kind}">${k}</button>`).join('')}</div>
+      <div class="eyebrow">Estancias que queréis reformar</div>
+      <div class="chips" id="ob-rooms">${ROOM_TYPES.filter(t => t !== 'Otra').map(t => `<button class="chip" data-t="${t}" aria-pressed="${types.has(t)}">${t}</button>`).join('')}</div>
+      <p class="small muted">Podréis añadir o quitar estancias cuando queráis.</p>
+      <button class="btn pri block" id="ob-go">Empezar ${ic('chev')}</button>
+    </section>
+    <p class="small muted" style="text-align:center">¿Ya tenéis un proyecto exportado? <label style="text-decoration:underline;cursor:pointer" data-act="import" for="f-json" role="button" tabindex="0">Importarlo</label></p>
+  </div></div>`;
+  $$('#ob-kind .chip').forEach(b => b.onclick = () => { kind = b.dataset.k; $$('#ob-kind .chip').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  $$('#ob-rooms .chip').forEach(b => b.onclick = () => { const t = b.dataset.t; types.has(t) ? types.delete(t) : types.add(t); b.setAttribute('aria-pressed', types.has(t)); });
+  $('#ob-go').onclick = () => {
+    starterProject({ name: $('#ob-name').value.trim() || 'Mi casa', kind, types: ROOM_TYPES.filter(t => types.has(t)) });
+    save(); S.history = []; S.nav = { name: 'home' }; window.scrollTo(0, 0); render();
+  };
 }
 
 /* ---------- room ---------- */
@@ -1020,7 +1119,7 @@ function roomDesign(r) {
   const byArea = AREAS.filter(a => d.changes.some(c => c.area === a)).concat([...new Set(d.changes.map(c => c.area))].filter(a => !AREAS.includes(a)));
   return `<section class="card">
       <div class="eyebrow">Estilo</div>
-      <div class="chips">${STYLES.map(s => `<button class="chip" data-act="style" data-v="${esc(s)}" aria-pressed="${d.style === s}">${esc(s)}</button>`).join('')}</div>
+      ${styleCards(d.style, 'style')}
       <div class="eyebrow" style="margin-top:4px">Nivel de reforma</div>
       <div class="seg">${INTENSITY.map((it, i) => `<button data-act="intensity" data-v="${i}" aria-selected="${(d.intensity ?? 1) === i}">${it.name}</button>`).join('')}</div>
       <p class="small muted">${esc(INTENSITY[d.intensity ?? 1].desc)}</p>
@@ -1046,6 +1145,9 @@ function roomDesign(r) {
     <section><button class="btn pri block" data-act="gen" ${r.photos.length ? '' : 'disabled'}>${ic('wand')} Generar fotos de la reforma</button>
       ${IN_ARTIFACT ? `<p class="small muted">Las fotos se generan en la app web (${esc(APP_URL.replace('https://', ''))}). Exporta este proyecto desde Ajustes e impórtalo allí.</p>` : ''}</section>`;
 }
+function styleCards(sel, act, scroll = false) {
+  return `<div class="styles${scroll ? ' scroll' : ''}" role="group" aria-label="Estilo">${STYLES.map(n => `<button class="stc" data-act="${act}" data-v="${esc(n)}" aria-pressed="${(sel || 'Moderno cálido') === n}"><span class="sw4">${STYLE_INFO[n].sw.map(c => `<i style="background:${c}"></i>`).join('')}</span><b>${esc(n)}</b></button>`).join('')}</div>`;
+}
 function changeCard(r, c) {
   const prods = r.design.products.filter(p => p.change === c.id);
   const cost = prods.length ? prods.reduce((s, p) => s + num(p.price) * (num(p.qty) || 1), 0) : num(c.cost);
@@ -1069,7 +1171,7 @@ function roomResults(r) {
   return `<section>
     <div class="row"><button class="btn pri" data-act="gen" ${r.photos.length ? '' : 'disabled'}>${ic('wand')} Generar</button><button class="btn" data-act="room-video" ${r.renders.length ? '' : 'disabled'}>${ic('film')} Vídeo antes/después</button></div>
     ${groups.length || orphan.length ? groups.map(g => `<div class="rgroup"><div class="orig" data-mid="${g.ph.mid}"><span class="lbl">Ahora</span></div>
-      <div class="hscroll">${jobs.filter(j => j.photoId === g.ph.id).map(j => `<div class="th job"><div><div class="spin"></div>${esc(j.label)}</div></div>`).join('')}${g.list.slice().reverse().map(x => renderThumb(x)).join('')}</div></div>`).join('')
+      <div class="hscroll">${jobs.filter(j => j.photoId === g.ph.id).map(j => `<div class="th job"><div><div class="spin"></div>${esc(j.label)}<div class="t" data-job-t="${j.id}">${secs(j)}</div><div class="small">Suele tardar 10-40 s</div></div></div>`).join('')}${g.list.slice().reverse().map(x => renderThumb(x)).join('')}</div></div>`).join('')
       + (orphan.length ? `<div class="hscroll">${orphan.map(renderThumb).join('')}</div>` : '')
     : `<div class="empty">${ic('wand')}<b>Aún no hay propuestas</b><span class="small">Revisa el diseño y pulsa Generar. Cada foto se reforma manteniendo la misma cámara y distribución.</span></div>`}
   </section>
@@ -1252,6 +1354,7 @@ function viewSettings() {
         <label class="f">O escribe otro identificador de modelo de fotos<input class="in mono" id="s-imodel-custom" placeholder="${esc(s.imageModel)}"></label>
       </div></details>
     </section>`}
+    ${installCard()}
     <section class="card">
       <h2>Copia y traspaso</h2>
       <p class="small muted">Los datos se guardan en este dispositivo${Store.persistent ? '' : ' (este navegador no permite guardarlos de forma permanente: exporta el proyecto para no perderlo)'}. Exporta el proyecto para pasarlo a otro móvil o entre la versión de Claude y la app web.</p>
@@ -1262,7 +1365,7 @@ function viewSettings() {
       <div class="seg">${[['', 'Sistema'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([k, l]) => `<button data-act="theme" data-k="${k}" aria-selected="${s.theme === k}">${l}</button>`).join('')}</div>
     </section>
     <section class="card"><h2>Empezar de cero</h2><p class="small muted">Borra todas las estancias, fotos y propuestas de este dispositivo.</p><button class="btn danger" data-act="reset">${ic('trash')} Borrar todo</button></section>
-    <p class="small muted" style="text-align:center">EtxeBerriAI · v1.1</p>
+    <p class="small muted" style="text-align:center">EtxeBerriAI · v1.2</p>
   </div>`;
 }
 
@@ -1312,6 +1415,9 @@ const ACTIONS = {
   jobs: () => sheet({ title: 'En curso', body: Jobs.list.map(j => `<div class="row nowrap"><div class="spin" style="margin:0;width:20px;height:20px"></div><span class="grow">${esc(roomById(j.roomId)?.name || '')} · ${esc(j.label)}</span><button class="btn sm" data-cancel="${j.id}">Cancelar</button></div>`).join('') || '<p class="muted">Nada en curso.</p>',
     onMount: (el, close) => $$('[data-cancel]', el).forEach(b => b.onclick = () => { Jobs.list.find(j => j.id === b.dataset.cancel)?.ctl.abort(); close(); }) }),
   'add-room': () => roomSheet(),
+  'quick-cam': () => quickFlow('f-cam'),
+  'quick-img': () => quickFlow('f-img'),
+  install: () => installApp(),
   'room-menu': () => roomSheet(roomById(S.nav.roomId)),
   'open-plan': () => go({ name: 'plan', planId: cur().plans[0]?.id }),
 
@@ -1358,9 +1464,52 @@ const ACTIONS = {
   theme: el => { S.settings.theme = el.dataset.k; saveSettings(); applyTheme(); renderView(); },
   export: () => exportProject(),
   import: () => importProject(),
-  reset: () => confirmSheet('Borrar todo', 'Se borrarán todas las estancias, fotos, propuestas y la lista de compra de este dispositivo. No se puede deshacer.', 'Borrar todo', async () => { const st = S.settings; await Store.clear(); Media.urls.clear(); S.settings = st; saveSettings(); S.project = seedProject(); save(); S.history = []; S.nav = { name: 'home' }; render(); toast('Proyecto reiniciado'); })
+  reset: () => confirmSheet('Borrar todo', 'Se borrarán todas las estancias, fotos, propuestas y la lista de compra de este dispositivo. No se puede deshacer.', 'Borrar todo', async () => { const st = S.settings; await Store.clear(); Media.urls.clear(); S.settings = st; saveSettings(); S.project = null; S.history = []; S.nav = { name: 'home' }; render(); })
 };
 const curPlan = () => cur().plans.find(x => x.id === S.nav.planId) || cur().plans[0];
+
+/* ---------- quick flow: one photo -> style -> render ---------- */
+async function quickFlow(inputId) {
+  const f = await pickFile(inputId, false); const file = Array.isArray(f) ? f[0] : f;
+  if (!file) return;
+  busy('Preparando la foto...');
+  let shot; try { shot = await shrink(file, 2400, .9); } finally { busy(null); }
+  const prev = URL.createObjectURL(shot.blob);
+  let style = 'Moderno cálido', intensity = 1;
+  const rooms = cur().rooms;
+  sheet({
+    title: 'Nueva reforma',
+    body: `<div class="qph"><img src="${prev}" alt="Foto elegida"></div>
+      <label class="f">¿Qué estancia es?<select class="in" id="q-room">
+        ${rooms.length ? `<optgroup label="Vuestras estancias">${rooms.map(r => `<option value="r:${r.id}">${esc(r.name)}</option>`).join('')}</optgroup>` : ''}
+        <optgroup label="Nueva estancia">${ROOM_TYPES.map(t => `<option value="t:${t}">${t === 'Otra' ? 'Otra estancia' : t}</option>`).join('')}</optgroup>
+      </select></label>
+      <div class="eyebrow">Estilo</div>
+      ${styleCards(style, 'q-style', true)}
+      <div class="eyebrow">Nivel de reforma</div>
+      <div class="seg" id="q-int">${INTENSITY.map((it, i) => `<button data-i="${i}" aria-selected="${i === intensity}">${it.name}</button>`).join('')}</div>
+      <p class="small muted" id="q-desc">${esc(INTENSITY[intensity].desc)}</p>`,
+    foot: `<button class="btn" data-close>Cancelar</button><button class="btn pri" id="q-ok">${ic('wand')} Generar</button>`,
+    onMount: (el, close) => {
+      el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-close]')) URL.revokeObjectURL(prev); });
+      $$('[data-act="q-style"]', el).forEach(b => b.onclick = ev => { ev.stopPropagation(); style = b.dataset.v; $$('[data-act="q-style"]', el).forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      $$('#q-int button', el).forEach(b => b.onclick = () => { intensity = +b.dataset.i; $$('#q-int button', el).forEach(x => x.setAttribute('aria-selected', x === b)); $('#q-desc', el).textContent = INTENSITY[intensity].desc; });
+      $('#q-ok', el).onclick = async () => {
+        const v = $('#q-room', el).value;
+        let r = v.startsWith('r:') ? roomById(v.slice(2)) : null;
+        if (!r) { const t = v.slice(2); r = newRoom({ name: uniqueRoomName(t), type: t, floor: FLOOR_OF[t] || 'Planta 1' }); cur().rooms.push(r); }
+        const ph = { id: uid('ph'), mid: await Media.add(shot.blob), w: shot.w, h: shot.h, from: 'foto', at: Date.now() };
+        r.photos.push(ph); r.design.style = style; r.design.intensity = intensity; save();
+        close(); URL.revokeObjectURL(prev);
+        const ready = IN_ARTIFACT ? false : !!S.settings.key;
+        go({ name: 'room', roomId: r.id, tab: ready ? 'res' : 'design' });
+        if (ready) runRender(r, ph, {});
+        else if (IN_ARTIFACT) genSheet(r);
+        else toast('Foto guardada. Añade la clave de la IA para generar.', { label: 'Ajustes', fn: () => go({ name: 'settings' }) });
+      };
+    }
+  });
+}
 
 /* ---------- room sheet ---------- */
 function roomSheet(r) {
@@ -1515,7 +1664,7 @@ async function runRender(r, ph, { useRefs = true, base = null, kind = 'design', 
     r.renders.push(rd); save();
     Jobs.done(job);
     if (S.viewer && S.viewer.roomId === r.id && S.viewer.waiting === job.id) { S.viewer.renderId = rd.id; S.viewer.waiting = null; drawViewer(); }
-    else toast(`${r.name}: propuesta lista`, { label: 'Ver', fn: () => openViewer(r.id, rd.id) });
+    else { toast(`${r.name}: propuesta lista`, { label: 'Ver', fn: () => openViewer(r.id, rd.id) }); try { navigator.vibrate?.(40); } catch {} }
     if (S.nav.name === 'home') renderView();
     return rd;
   } catch (e) { Jobs.done(job); if (S.viewer?.waiting === job.id) { S.viewer.waiting = null; drawViewer(); } errToast(e); return null; }
@@ -1552,7 +1701,7 @@ function drawViewer() {
     <button class="icon-btn" data-v="solo" aria-label="${v.solo ? 'Comparar' : 'Ver solo la propuesta'}" title="Comparar">${ic('layers')}</button>
     <button class="icon-btn" data-v="fav" aria-label="Favorita" style="${rd.fav ? 'color:#ffd166' : ''}">${ic('star')}</button>
     <button class="icon-btn" data-v="del" aria-label="Borrar">${ic('trash')}</button></div>
-    <div class="stage">${waiting ? `<div style="text-align:center"><div class="spin"></div><p>${esc(waiting.label)}... </p><p class="small" style="color:#a9b3ab">Suele tardar entre 10 y 40 segundos.</p></div>` : `
+    <div class="stage">${waiting ? `<div style="text-align:center"><div class="spin"></div><p>${esc(waiting.label)}... <span class="mono" data-job-t="${waiting.id}">${secs(waiting)}</span></p><p class="small" style="color:#a9b3ab">Suele tardar entre 10 y 40 segundos.</p></div>` : `
       <div class="cmp ${v.solo || !ph ? 'solo' : ''}" style="--p:50%"><img class="after" data-mid="${rd.mid}" alt="Propuesta"><img class="before" ${ph ? `data-mid="${ph.mid}"` : ''} alt="Antes"><div class="handle"></div><span class="lb l">Antes</span><span class="lb r">Después</span><span class="lb ai">Generada con IA</span></div>`}</div>
     ${chain.length > 1 ? `<div class="vstrip">${chain.map((x, i) => `<button data-v="pick" data-id="${x.id}" data-mid="${x.mid}" aria-current="${x === rd}" aria-label="Versión ${i + 1}"><span>${i + 1}</span></button>`).join('')}</div>` : ''}
     <div class="vacts">
@@ -1561,6 +1710,7 @@ function drawViewer() {
       <button data-v="variant">${ic('refresh')}Otra versión</button>
       <button data-v="products">${ic('tag')}Productos</button>
       <button data-v="video">${ic('video')}Vídeo IA</button>
+      <button data-v="share">${ic('share')}Compartir</button>
       <button data-v="save">${ic('download')}Guardar</button>
     </div>`;
   hydrate(el);
@@ -1588,7 +1738,12 @@ const VACT = {
   variant: (r, rd, ph) => { if (!ph) return; const job = runRender(r, ph, { prompt: rd.prompt, kind: 'variant', parent: rd.parent || rd.id, useRefs: false, base: null }); waitIn(r); return job; },
   products: (r, rd, ph) => detectProducts(r, rd, ph),
   video: (r, rd) => aiVideoSheet(r, rd),
-  save: async (r, rd) => saveFile(await aiMark(await Media.blob(rd.mid)), `${slug(r.name)}-propuesta.jpg`)
+  save: async (r, rd) => saveFile(await aiMark(await Media.blob(rd.mid)), `${slug(r.name)}-propuesta.jpg`),
+  share: async (r, rd, ph) => {
+    busy('Preparando el antes y después...');
+    let out; try { out = ph ? await beforeAfter(await Media.blob(ph.mid), await Media.blob(rd.mid)) : await aiMark(await Media.blob(rd.mid)); } finally { busy(null); }
+    await shareImage(out, `${slug(r.name)}-antes-despues.jpg`, `${r.name}: así quedaría con la reforma. Hecho con EtxeBerriAI.`);
+  }
 };
 function waitIn(r) { const j = Jobs.list[Jobs.list.length - 1]; if (j && S.viewer) { S.viewer.waiting = j.id; drawViewer(); } }
 
@@ -2054,13 +2209,27 @@ async function importProject() {
   }, false);
 }
 
+/* ================= install ================= */
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; if (S.nav.name === 'settings') renderView(); });
+window.addEventListener('appinstalled', () => { installEvt = null; toast('App instalada'); });
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+async function installApp() { if (!installEvt) return; installEvt.prompt(); try { await installEvt.userChoice; } catch {} installEvt = null; renderView(); }
+function installCard() {
+  if (IN_ARTIFACT || standalone()) return '';
+  const ios = /iPhone|iPad/i.test(navigator.userAgent);
+  if (!installEvt && !ios) return '';
+  return `<section class="card"><h2>Instalar en el móvil</h2><p class="small muted">Tened EtxeBerriAI como una app más, a pantalla completa y con su icono.</p>
+    ${installEvt ? `<button class="btn pri" data-act="install">${ic('download')} Instalar app</button>` : `<p class="small">En Safari pulsa <b>Compartir</b> ${ic('share')} y después <b>Añadir a pantalla de inicio</b>.</p>`}</section>`;
+}
+
 /* ================= boot ================= */
 async function boot() {
   try { const ls = JSON.parse(lsGet('etxea-settings') || 'null'); const db = await Store.get('kv', 'settings'); Object.assign(S.settings, db || {}, ls || {}); } catch {}
   applyTheme();
   const saved = await Store.get('kv', 'project');
-  S.project = saved && saved.rooms ? saved : seedProject();
-  if (!saved) save();
+  S.project = saved && saved.rooms ? saved : null;
+  S.ready = true;
   render();
   AI.init();
 }
