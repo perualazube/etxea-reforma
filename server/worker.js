@@ -1,6 +1,6 @@
 // Etxea API proxy (Cloudflare Worker).
 // Holds the Gemini key server-side, checks the user's access code and charges credits per generation.
-// Codes live in the CODES KV namespace: key `code:<code>` → {"name":"...","credits":30}.
+// Codes live in the CODES KV namespace under their SHA-256, never in clear: key `code:<sha256 hex>` → {"name":"...","credits":30}.
 
 const GEM = 'https://generativelanguage.googleapis.com';
 const COST = { image: 1, video: 10, text: 0 };
@@ -35,16 +35,22 @@ async function limited(binding, key) {
   try { const { success } = await binding.limit({ key }); return !success; } catch { return false; }
 }
 
+export async function hashCode(code) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code));
+  return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
 async function account(code, env) {
   if (!code) return null;
-  const raw = await env.CODES.get('code:' + code);
-  return raw ? JSON.parse(raw) : null;
+  const id = 'code:' + await hashCode(code);
+  const raw = await env.CODES.get(id);
+  return raw ? { id, ...JSON.parse(raw) } : null;
 }
 
 // KV is eventually consistent: good enough for a closed beta, move credits to a database before opening sign-ups.
-async function addCredits(code, acc, delta, env) {
+async function addCredits(acc, delta, env) {
   acc.credits = (acc.credits || 0) + delta;
-  await env.CODES.put('code:' + code, JSON.stringify(acc));
+  const { id, ...rest } = acc;
+  await env.CODES.put(id, JSON.stringify(rest));
 }
 
 function upstream(path, search, init, env) {
@@ -106,9 +112,9 @@ export default {
       const cost = costOf(body);
       // Text is free but still needs an account with credits left.
       if ((acc.credits || 0) < Math.max(cost, 1)) return fail(402, 'Sin créditos', cors);
-      if (cost) await addCredits(code, acc, -cost, env);
+      if (cost) await addCredits(acc, -cost, env);
       const r = await upstream(path, '', { method: 'POST', body: JSON.stringify(body) }, env);
-      if (!r.ok && cost) await addCredits(code, acc, cost, env);
+      if (!r.ok && cost) await addCredits(acc, cost, env);
       return new Response(r.body, { status: r.status, headers: { 'Content-Type': r.headers.get('Content-Type') || 'application/json', ...cors } });
     }
 
