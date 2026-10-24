@@ -317,7 +317,7 @@ const ROOM_TYPES = ['Salón', 'Comedor', 'Cocina', 'Dormitorio', 'Baño', 'Despa
 const DEFAULT_CONTEXT = 'Chalet de dos plantas recién comprado en un valle rural junto a un río. Estilo objetivo: moderno cálido (blancos rotos, madera natural, verde salvia, negro mate en detalles, lino y fibras naturales). Queremos aprovechar muebles y elementos que estén bien (escalera de mármol, sofá, mesa de comedor) y hacer cambios realistas y asumibles, sin obras estructurales.';
 const QUICK_ADJUST = ['Suelo un tono más claro', 'Paredes en verde salvia', 'Quita la alfombra', 'Más luz cálida', 'Cortinas de lino blancas', 'Mantén el sofá original', 'Añade plantas', 'Menos decoración'];
 const DEFAULT_SETTINGS = {
-  key: '', brain: 'auto',
+  key: '', server: '', brain: 'auto',
   textModel: 'gemini-3.8-flash', imageModel: 'gemini-nano-banana-2.1', videoModel: 'gemini-omni-1.1-flash',
   imageSize: '2K', videoRes: '720p', theme: ''
 };
@@ -602,16 +602,23 @@ function claudeErr(e) {
 async function imgPart(blob, max) { const s = await shrink(blob, max, .9); return { type: 'image', mime_type: 'image/jpeg', data: await blobB64(s.blob) }; }
 function gemErr(status, j) {
   const msg = j?.error?.message || j?.message || '';
+  if (status === 402) return 'No te quedan créditos en el servidor de Etxea.';
+  if (status === 401) return 'El código de acceso no es válido. Revísalo en Ajustes.';
   if (/api key not valid|API_KEY_INVALID/i.test(msg)) return 'La clave de Google Gemini no es válida. Revísala en Ajustes.';
   if (status === 429) return 'Google ha limitado las peticiones (cuota). Espera un minuto o activa la facturación en Google AI Studio.';
   if (status === 403) return 'Tu clave no tiene permiso para este modelo. Activa la facturación en Google AI Studio o cambia de modelo en Ajustes.';
   if (status === 404) return 'Google no encuentra el modelo. Cámbialo en Ajustes. (' + msg.slice(0, 120) + ')';
   return 'Google respondió con un error' + (msg ? ': ' + msg.slice(0, 240) : ' (' + status + ').');
 }
+// With a server set, calls go through the Etxea proxy (it holds the Gemini key and counts credits); the key field then holds the access code.
+function api() {
+  const srv = String(S.settings.server || '').trim().replace(/\/+$/, '');
+  return srv ? { base: srv + '/v1beta', h: { 'Authorization': 'Bearer ' + S.settings.key }, srv: true } : { base: GEM, h: { 'x-goog-api-key': S.settings.key }, srv: false };
+}
 async function gemini(body, signal) {
-  const key = S.settings.key;
+  const a = api();
   let r;
-  try { r = await fetch(GEM + '/interactions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body), signal }); }
+  try { r = await fetch(a.base + '/interactions', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h }, body: JSON.stringify(body), signal }); }
   catch (e) { if (isAbort(e)) throw e; throw new UserErr('No hay conexión con Google Gemini. Comprueba internet e inténtalo de nuevo.'); }
   let j = await r.json().catch(() => ({}));
   if (!r.ok) throw new UserErr(gemErr(r.status, j));
@@ -626,7 +633,8 @@ async function gemini(body, signal) {
 }
 async function getInteraction(id, signal) {
   const path = String(id).includes('/') ? String(id) : 'interactions/' + encodeURIComponent(id);
-  const r = await fetch(GEM + '/' + path, { headers: { 'x-goog-api-key': S.settings.key }, signal });
+  const a = api();
+  const r = await fetch(a.base + '/' + path, { headers: a.h, signal });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new UserErr(gemErr(r.status, j));
   return j;
@@ -634,14 +642,16 @@ async function getInteraction(id, signal) {
 async function downloadFile(uri, signal) {
   const id = String(uri).split('files/')[1]?.split(/[?:/]/)[0];
   if (!id) { const r = await fetch(uri, { signal }); if (!r.ok) throw new UserErr('No se pudo descargar el resultado.'); return r.blob(); }
+  const a = api();
   for (let i = 0; i < 90; i++) {
-    const r = await fetch(`${GEM}/files/${id}`, { headers: { 'x-goog-api-key': S.settings.key }, signal });
+    const r = await fetch(`${a.base}/files/${id}`, { headers: a.h, signal });
     const j = await r.json().catch(() => ({}));
     if (/ACTIVE/i.test(j.state || '')) break;
     if (/FAILED/i.test(j.state || '')) throw new UserErr('Google no pudo preparar el archivo.');
     await sleep(5000, signal);
   }
-  const r = await fetch(`${GEM}/files/${id}:download?alt=media&key=${encodeURIComponent(S.settings.key)}`, { signal });
+  const r = a.srv ? await fetch(`${a.base}/files/${id}:download?alt=media`, { headers: a.h, signal })
+    : await fetch(`${GEM}/files/${id}:download?alt=media&key=${encodeURIComponent(S.settings.key)}`, { signal });
   if (!r.ok) throw new UserErr('No se pudo descargar el vídeo de Google.');
   return r.blob();
 }
@@ -1166,6 +1176,10 @@ function viewSettings() {
       <p class="small muted">Genera las fotos (Nano Banana), los vídeos (Omni) y el diseño. Crea una clave en Google AI Studio y activa la facturación para las imágenes: cada foto cuesta unos céntimos. La clave se guarda solo en este dispositivo.</p>
       <label class="f">Clave de API<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="AIza..."></label>
       <div class="row"><a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">${ic('ext')} Conseguir clave</a><button class="btn sm" data-act="test-key">${ic('check')} Probar conexión</button></div>
+      <details class="adv"${s.server ? ' open' : ''}><summary>Usar el servidor de Etxea (código de acceso)</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <p class="small muted">Si tienes un código de acceso, pon aquí la dirección del servidor y pega el código en «Clave de API». No necesitas clave de Google.</p>
+        <label class="f">Dirección del servidor<input class="in mono" id="s-server" inputmode="url" autocomplete="off" value="${esc(s.server || '')}" placeholder="https://etxea-api.ejemplo.workers.dev"></label>
+      </div></details>
       <details class="adv"><summary>Modelos y calidad</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
         <label class="f">Fotos${sel('s-imodel', [['gemini-nano-banana-2.1', 'Nano Banana 2.1 (recomendado)'], ['gemini-3-pro-image', 'Gemini 3 Pro Image (máxima calidad)'], ['gemini-3.1-flash-image', 'Gemini 3.1 Flash Image'], ['gemini-3.1-flash-lite-image', 'Gemini 3.1 Flash Lite Image (barato)']], s.imageModel)}</label>
         <div class="two"><label class="f">Resolución de foto${sel('s-isize', [['1K', '1K'], ['2K', '2K'], ['4K', '4K']], s.imageSize)}</label><label class="f">Resolución de vídeo${sel('s-vres', [['720p', '720p'], ['1080p', '1080p']], s.videoRes)}</label></div>
@@ -1215,6 +1229,7 @@ document.addEventListener('input', e => {
   else if (el.id === 's-context') { cur().context = el.value; save(); }
   else if (el.id === 's-budget') { cur().budget = el.value; save(); }
   else if (el.id === 's-key') { S.settings.key = el.value.trim(); saveSettings(); }
+  else if (el.id === 's-server') { S.settings.server = el.value.trim(); saveSettings(); }
 });
 function autoGrow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 function settingsChange(el) {
@@ -1937,12 +1952,14 @@ async function testKey() {
   if (!S.settings.key) { toast('Pega primero la clave.'); return; }
   busy('Probando la conexión con Google...');
   try {
-    const r = await fetch(`${GEM}/models?pageSize=200`, { headers: { 'x-goog-api-key': S.settings.key } });
+    const a = api();
+    const r = await fetch(`${a.base}/models?pageSize=200`, { headers: a.h });
     const j = await r.json().catch(() => ({}));
     busy(null);
     if (!r.ok) { toast(gemErr(r.status, j)); return; }
     const names = (j.models || []).map(m => String(m.name || '').replace('models/', ''));
     const missing = [S.settings.imageModel, S.settings.textModel, S.settings.videoModel].filter(m => names.length && !names.includes(m));
+    if (a.srv) { const c = await fetch(`${a.base}/credits`, { headers: a.h }).then(x => x.json()).catch(() => ({})); toast(`Conectado al servidor. Te quedan ${c.credits ?? '?'} créditos.`); return; }
     toast(missing.length ? `Conectado, pero tu clave no ve: ${missing.join(', ')}. Elige otro modelo.` : 'Conexión correcta con Google Gemini.');
   } catch (e) { busy(null); toast('No hay conexión con Google. Revisa internet.'); }
 }
