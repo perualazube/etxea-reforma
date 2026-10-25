@@ -53,7 +53,7 @@ const M = { corte: new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 
 
 /* ---------- scene state ---------- */
 let plan = null, walls = [], group = null, wallGroup = null, mode = 'now', wallH = 2.6, low = false;
-let roomMats = {}, itemMeshes = [], labels = [], center = new THREE.Vector3();
+let roomMats = {}, itemMeshes = [], labels = [], floorMeshes = [], center = new THREE.Vector3();
 
 function box(x0, x1, y0, y1, z0, z1, mat, parent) { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), mat);
   m.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2); m.castShadow = m.receiveShadow = true; parent.add(m); return m; }
@@ -62,7 +62,7 @@ function disposeTree(o) { o.traverse(x => { if (x.geometry) x.geometry.dispose()
 function build(p) {
   plan = p; walls = deriveWalls(p); wallH = p.wallHeight;
   if (group) { scene.remove(group); disposeTree(group); }
-  group = new THREE.Group(); scene.add(group); roomMats = {}; itemMeshes = []; labels = [];
+  group = new THREE.Group(); scene.add(group); roomMats = {}; itemMeshes = []; labels = []; floorMeshes = []; picRoom = null;
   center.set(p.width / 2, 0, p.depth / 2);
   const span = Math.max(p.width, p.depth);
   sun.position.set(center.x + span * .75, 20 + span, center.z + span); sun.target.position.copy(center);
@@ -75,7 +75,7 @@ function build(p) {
     box(r.x0, r.x1, -0.25, -0.005, r.z0, r.z1, M.slab, group);
     const pg = new THREE.PlaneGeometry(r.x1 - r.x0, r.z1 - r.z0), uv = pg.attributes.uv, t = TILE[r.floor];
     for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * (r.x1 - r.x0) / t, uv.getY(i) * (r.z1 - r.z0) / t);
-    const f = new THREE.Mesh(pg, floor); f.rotation.x = -Math.PI / 2; f.position.set((r.x0 + r.x1) / 2, 0, (r.z0 + r.z1) / 2); f.receiveShadow = true; group.add(f);
+    const f = new THREE.Mesh(pg, floor); f.rotation.x = -Math.PI / 2; f.position.set((r.x0 + r.x1) / 2, 0, (r.z0 + r.z1) / 2); f.receiveShadow = true; f.userData.room = r; group.add(f); floorMeshes.push(f);
   });
   p.items.forEach(it => { const mat = new THREE.MeshStandardMaterial({ roughness: .7 }); const m = box(it.x0, it.x1, it.y0, it.y0 + it.h, it.z0, it.z1, mat, group); m.userData.item = it; itemMeshes.push(m); });
   buildWalls(); buildLabels(); buildIndex(); applyMode();
@@ -150,10 +150,21 @@ function buildIndex() {
 }
 
 function applyMode() {
-  plan.rooms.forEach(r => { const c = r[mode]; roomMats[r.id].wall.color.set(c.wall); roomMats[r.id].floor.color.set(c.floor); });
+  plan.rooms.forEach(r => { const c = r[mode], fm = roomMats[r.id].floor, t = TEX[mode === 'prop' && r.floorProp || r.floor];
+    roomMats[r.id].wall.color.set(c.wall); fm.color.set(c.floor); if (fm.map !== t) { fm.map = t; fm.needsUpdate = true; } });
   itemMeshes.forEach(m => { const c = m.userData.item[mode]; m.visible = !!c; if (c) m.material.color.set(c); });
   $('changes').hidden = mode !== 'prop' || !plan.changes.length;
+  showPic(mode === 'prop' ? picRoom : null);
 }
+
+/* ---------- renovated photo of the focused room ---------- */
+let picRoom = null;
+function showPic(r) {
+  const el = $('pic');
+  if (!r || !r.photo || mode !== 'prop') { el.hidden = true; return; }
+  $('pic-img').src = r.photo; $('pic-img').alt = 'Foto reformada: ' + r.photoOf; $('pic-t').textContent = 'Tu reforma · ' + r.photoOf; el.hidden = false;
+}
+$('pic-x').onclick = () => { picRoom = null; showPic(null); };
 
 /* ---------- camera ---------- */
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -164,7 +175,17 @@ const home = () => { const t = center.clone(); if (stage.clientWidth > 640) t.x 
 const homePos = () => { const radius = Math.hypot(plan.width, plan.depth) / 2 + 0.8, v = THREE.MathUtils.degToRad(camera.fov) / 2, h = Math.atan(Math.tan(v) * camera.aspect);
   return home().add(new THREE.Vector3(6.5, 16.5, 12).normalize().multiplyScalar(radius / Math.sin(Math.min(v, h)))); };
 function focusRoom(r) { const c = new THREE.Vector3((r.x0 + r.x1) / 2, 0.6, (r.z0 + r.z1) / 2), s = Math.max(r.x1 - r.x0, r.z1 - r.z0);
-  moveTo(new THREE.Vector3(c.x + s * .55, 2.4 + s * .9, c.z + s * 1.05), c); press('v', ''); }
+  moveTo(new THREE.Vector3(c.x + s * .55, 2.4 + s * .9, c.z + s * 1.05), c); press('v', '');
+  picRoom = r; showPic(r); }
+// A tap (not a drag) on a floor focuses that room.
+const ray = new THREE.Raycaster(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return; downAt = null;
+  const b = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera({ x: (e.clientX - b.left) / b.width * 2 - 1, y: -(e.clientY - b.top) / b.height * 2 + 1 }, camera);
+  const hit = ray.intersectObjects(floorMeshes)[0]; if (hit) focusRoom(hit.object.userData.room);
+});
 
 /* ---------- controls ---------- */
 function press(prefix, id) { document.querySelectorAll(`.seg [id^="${prefix}-"]`).forEach(b => b.setAttribute('aria-pressed', String(b.id === id))); }
@@ -172,7 +193,7 @@ $('m-now').onclick = () => { mode = 'now'; press('m', 'm-now'); applyMode(); };
 $('m-prop').onclick = () => { mode = 'prop'; press('m', 'm-prop'); applyMode(); };
 $('w-high').onclick = () => { low = false; press('w', 'w-high'); buildWalls(); };
 $('w-low').onclick = () => { low = true; press('w', 'w-low'); buildWalls(); };
-$('v-3d').onclick = () => { press('v', 'v-3d'); moveTo(homePos(), home()); };
+$('v-3d').onclick = () => { press('v', 'v-3d'); picRoom = null; showPic(null); moveTo(homePos(), home()); };
 $('v-top').onclick = () => { press('v', 'v-top'); moveTo(new THREE.Vector3(center.x, Math.max(plan.width, plan.depth) * 1.45, center.z + 0.01), center.clone()); };
 const show = (id, on) => { $(id).hidden = !on; };
 $('open-create').onclick = () => { show('data', false); show('create', $('create').hidden); };
@@ -246,6 +267,8 @@ const DEMO = new URLSearchParams(location.search).has('demo');
 if (DEMO) document.body.classList.add('demo');
 let start; try { start = DEMO ? normalize(ETXEA) : normalize(JSON.parse(lsGet(STORE) || 'null')); } catch { start = normalize(ETXEA); }
 applyTheme(); build(start);
+// ?prop: opened from the app after painting the plan with the renovated photos.
+if (!DEMO && new URLSearchParams(location.search).has('prop')) $('m-prop').click();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(buildLabels);
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 renderer.setAnimationLoop(() => {
