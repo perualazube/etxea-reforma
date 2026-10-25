@@ -1545,7 +1545,7 @@ function viewSettings() {
       <div class="seg" role="tablist" aria-label="Cómo conectar la IA"><button data-act="use-server" aria-selected="${!!s.server}">Código de acceso</button><button data-act="use-own" aria-selected="${!s.server}">Mi clave de Google</button></div>
       ${s.server ? `<h2>Código de acceso</h2>
       <p class="small muted">Pega el código que te hemos enviado. Cada foto gasta 1 crédito y cada vídeo con IA, 10. El diseño y la lista de compra no gastan.</p>
-      <label class="f">Código<input class="in mono" id="s-key" type="password" autocomplete="off" value="${esc(s.key)}" placeholder="Tu código"></label>
+      <label class="f">Código<input class="in mono" id="s-key" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(s.key)}" placeholder="EB-XXXXXXXX"></label>
       <div class="row"><button class="btn sm" data-act="test-key">${ic('check')} Ver mis créditos</button><a class="btn sm" href="${WAITLIST}" target="_blank" rel="noopener">${ic('ext')} Pedir código</a></div>
 `
       : `<h2>Google Gemini</h2>
@@ -1614,7 +1614,8 @@ document.addEventListener('input', e => {
   else if (el.id === 's-pname') { cur().name = el.value; save(); }
   else if (el.id === 's-context') { cur().context = el.value; save(); }
   else if (el.id === 's-budget') { cur().budget = el.value; save(); }
-  else if (el.id === 's-key') { S.settings.key = el.value.trim(); saveSettings(); }
+  // Access codes are upper case without spaces; people often type them in lower case on the phone.
+  else if (el.id === 's-key') { S.settings.key = S.settings.server ? el.value.replace(/\s+/g, '').toUpperCase() : el.value.trim(); saveSettings(); }
   });
 function autoGrow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 function settingsChange(el) {

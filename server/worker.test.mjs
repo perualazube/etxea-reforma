@@ -115,3 +115,9 @@ test('codes are stored hashed, never in clear', async () => {
   const e = env(5); e.CODES.m.set('code:ABC', JSON.stringify({ credits: 5 })); e.CODES.m.delete(H);
   assert.equal((await worker.fetch(req('/v1beta/credits', { headers: auth }), e)).status, 401);
 });
+
+test('accepts the code typed in lower case or with spaces', async () => {
+  const r = await worker.fetch(req('/v1beta/credits', { headers: { Authorization: 'Bearer a bc' } }), env(3));
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).credits, 3);
+});
