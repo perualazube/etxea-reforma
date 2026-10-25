@@ -5,7 +5,7 @@ import html, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 # Holder: a private person while the project earns nothing; switch to autónomo data (NIF, address) when it starts charging.
-TITULAR = 'NOMBRE Y APELLIDOS'
+TITULAR = 'Peru Alaña Zubeldia'
 EMAIL = 'hola@etxeberriai.com'
 UPDATED = '25 de octubre de 2026'
 
