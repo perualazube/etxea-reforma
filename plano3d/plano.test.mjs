@@ -42,3 +42,11 @@ test('normalize repairs sloppy AI output', () => {
 test('no usable rooms is a readable error', () => {
   assert.throws(() => normalize({ rooms: [] }), /estancia/);
 });
+
+test('keeps the proposal floor type and the renovated photo, drops bad ones', () => {
+  const photo = 'data:image/jpeg;base64,' + 'A'.repeat(40);
+  const p = normalize({ rooms: [{ x0: 0, x1: 4, z0: 0, z1: 3, floor: 'baldosa', floorProp: 'parquet', photo, photoOf: 'Salón' },
+    { x0: 4, x1: 8, z0: 0, z1: 3, floorProp: 'moqueta', photo: 'javascript:alert(1)' }] });
+  assert.equal(p.rooms[0].floorProp, 'parquet'); assert.equal(p.rooms[0].photo, photo); assert.equal(p.rooms[0].photoOf, 'Salón');
+  assert.equal(p.rooms[1].floorProp, undefined); assert.equal(p.rooms[1].photo, undefined);
+});

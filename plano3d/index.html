@@ -68,6 +68,11 @@ button:focus-visible,.room:focus-visible,textarea:focus-visible,input:focus-visi
 .msg.err{color:var(--warn)}
 .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed var(--line);border-radius:10px;padding:18px;text-align:center;cursor:pointer;font-size:.86rem}
 .drop img{max-width:100%;max-height:160px;border-radius:6px}
+.pic{position:absolute;right:max(16px, env(safe-area-inset-right, 0px));bottom:52px;width:min(300px, calc(100% - 32px));margin:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.14)}
+.pic[hidden]{display:none}
+.pic img{display:block;width:100%;max-height:42vh;object-fit:cover}
+.pic figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 6px 10px;font-size:.8rem;font-weight:500}
+.pic .btn{padding:3px 9px}
 .hint{position:absolute;right:max(16px, env(safe-area-inset-right, 0px));bottom:14px;font-size:.74rem;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 9px}
 @media (max-width:640px){
   .index{top:auto;bottom:12px;left:12px;right:12px;width:auto;flex-direction:row;overflow-x:auto;padding:8px;gap:6px;max-height:none}
@@ -76,6 +81,9 @@ button:focus-visible,.room:focus-visible,textarea:focus-visible,input:focus-visi
   .hint{display:none}
   h1{font-size:1.05rem}
   .sheet{left:12px;right:12px;width:auto;top:12px}
+  .pic{left:12px;right:auto;top:12px;bottom:auto;width:min(170px, calc(100% - 24px))}
+  .pic img{max-height:22vh}
+  .pic figcaption{font-size:.74rem;padding:4px 4px 4px 8px}
 }
 </style></head><body>
 <div class="app">
@@ -114,6 +122,7 @@ button:focus-visible,.room:focus-visible,textarea:focus-visible,input:focus-visi
       <div class="row"><button class="btn pri" id="apply">Aplicar</button><button class="btn" id="sample">Ejemplo: Etxea</button><button class="btn" id="download">Descargar</button><button class="btn" id="close-data">Cerrar</button></div>
       <div class="msg" id="data-msg" role="status"></div>
     </section>
+    <figure class="pic" id="pic" hidden><img id="pic-img" alt=""><figcaption><span id="pic-t"></span><button class="btn" id="pic-x" aria-label="Cerrar foto">✕</button></figcaption></figure>
     <div class="hint">Toca una estancia para acercarte</div>
   </div>
 </div>

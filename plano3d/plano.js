@@ -5,6 +5,7 @@
 const EXT = 0.25, INT = 0.12, EPS = 0.02;
 const FLOORS = ['parquet', 'baldosa', 'bano', 'marmol', 'cemento'];
 const SIDES = ['N', 'S', 'E', 'O'];
+const PHOTO = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
 const num = (v, d) => (Number.isFinite(+v) ? +v : d);
 const hex = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v) : d);
 const r2 = v => Math.round(v * 100) / 100;
@@ -19,9 +20,13 @@ function normalize(raw) {
     if (x1 - x0 < 0.5 || z1 - z0 < 0.5) return null;
     const floor = FLOORS.includes(r.floor) ? r.floor : 'parquet';
     const now = r.now || {}, prop = r.prop || {};
-    return { id: String(r.id || 'r' + i).replace(/[^\w-]/g, '') || 'r' + i, name: String(r.name || 'Estancia ' + (i + 1)).slice(0, 40),
+    const out = { id: String(r.id || 'r' + i).replace(/[^\w-]/g, '') || 'r' + i, name: String(r.name || 'Estancia ' + (i + 1)).slice(0, 40),
       x0: r2(x0), x1: r2(x1), z0: r2(z0), z1: r2(z1), floor,
       now: { wall: hex(now.wall, '#ece6da'), floor: hex(now.floor, '#c9b79c') }, prop: { wall: hex(prop.wall, hex(now.wall, '#eee9df')), floor: hex(prop.floor, hex(now.floor, '#cf9f6c')) } };
+    // Set by the app from the renovated photos: the proposal's own floor type and a small copy of the photo.
+    if (FLOORS.includes(r.floorProp) && r.floorProp !== floor) out.floorProp = r.floorProp;
+    if (PHOTO.test(String(r.photo || '')) && r.photo.length < 400000) { out.photo = r.photo; out.photoOf = String(r.photoOf || out.name).slice(0, 40); }
+    return out;
   }).filter(Boolean);
   if (!rooms.length) throw new Error('No hay ninguna estancia válida (cada una necesita x0, x1, z0, z1 en metros).');
   const minX = Math.min(...rooms.map(r => r.x0)), minZ = Math.min(...rooms.map(r => r.z0));
