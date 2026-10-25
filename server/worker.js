@@ -41,7 +41,8 @@ export async function hashCode(code) {
 }
 async function account(code, env) {
   if (!code) return null;
-  const id = 'code:' + await hashCode(code);
+  // Codes are issued in upper case; accept them typed in lower case or with spaces.
+  const id = 'code:' + await hashCode(code.replace(/\s+/g, '').toUpperCase());
   const raw = await env.CODES.get(id);
   return raw ? { id, ...JSON.parse(raw) } : null;
 }

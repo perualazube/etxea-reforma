@@ -1,6 +1,6 @@
 <!doctype html><html lang="ca"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>EtxeBerriAI · Mira com quedarà casa teva abans de reformar-la</title>
 <meta name="description" content="Fes una foto de cada estança i EtxeBerriAI t&#x27;ensenya la reforma realista, amb els productes per comprar-la i el que costa.">
@@ -10,8 +10,7 @@
 <meta property="og:url" content="https://etxeberriai.com/ca/"><meta property="og:image" content="https://etxeberriai.com/icon-512.png">
 <link rel="icon" href="../icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../icon-180.png">
 <meta name="theme-color" content="#335c49">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../fonts/fonts.css">
 <style>
 /* Landing: hero with the live 3D demo, how it works, audiences, pricing, waiting list, FAQ */
 :root{
@@ -138,7 +137,7 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <form id="wl" novalidate>
       <div class="row"><input type="email" id="email" name="email" placeholder="tu@email.cat" autocomplete="email" required aria-label="Email" maxlength="200">
         <select id="profile" aria-label="Qui ets"><option value="particular">Reformaré casa meva</option><option value="reformista">Soc paleta o interiorista</option><option value="inmobiliaria">Treballo en una immobiliària</option><option value="otro">Altres</option></select></div>
-      <label class="check"><input type="checkbox" id="consent"> <span>Accepto que EtxeBerriAI guardi el meu email només per avisar-me del llançament. Puc demanar que l&#x27;esborrin quan vulgui.</span></label>
+      <label class="check"><input type="checkbox" id="consent"> <span>Accepto que EtxeBerriAI guardi el meu email només per avisar-me del llançament. Puc demanar que l&#x27;esborrin quan vulgui. <a href="../legal/#privacidad">Política de privadesa</a></span></label>
       <div class="row"><button class="btn pri" type="submit" id="send">Apunta&#x27;m</button></div>
       <div class="msg" id="wl-msg" role="status"></div>
     </form>
@@ -150,10 +149,10 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <details><summary>Les fotos són reals?</summary><p>Són imatges generades amb intel·ligència artificial a partir de les teves fotos i van marcades com a tals. Són orientatives: serveixen per decidir, no són un projecte tècnic.</p></details>
     <details><summary>Què passa amb les fotos de casa meva?</summary><p>Els teus projectes es guarden al mòbil. Per generar cada proposta, la foto s&#x27;envia a la IA de Google (Gemini) en la modalitat de pagament, que no fa servir les teves dades per entrenar.</p></details>
     <details><summary>Els preus dels productes són fiables?</summary><p>Són preus de referència de cada botiga. Alguns enllaços de compra són d&#x27;afiliat: si compres a través d&#x27;ells, rebem una petita comissió sense cost per a tu.</p></details>
-    <details><summary>En quins idiomes està?</summary><p>El web està en castellà, basc, anglès, català i francès. L&#x27;app, de moment, en castellà; els altres idiomes arribaran amb el llançament.</p></details>
+    <details><summary>En quins idiomes està?</summary><p>El web i l&#x27;app estan en castellà, basc, anglès, català i francès. A l&#x27;app es canvia a Configuració.</p></details>
   </div></section>
 </main>
-<footer><div class="wrap">EtxeBerriAI · Reforma amb IA. Imatges de proposta generades amb intel·ligència artificial, orientatives.</div></footer>
+<footer><div class="wrap">EtxeBerriAI · Reforma amb IA. Imatges de proposta generades amb intel·ligència artificial, orientatives. · <a href="../legal/">Avís legal i privadesa</a></div></footer>
 <script>
 (function () {
   'use strict';

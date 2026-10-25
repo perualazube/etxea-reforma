@@ -1,6 +1,6 @@
 <!doctype html><html lang="eu"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>EtxeBerriAI · Ikusi zure etxea nola geratuko den berritu aurretik</title>
 <meta name="description" content="Atera argazki bat gela bakoitzari eta EtxeBerriAIk berrikuntza errealista erakutsiko dizu, erosi beharreko produktuekin eta zenbat kostatzen den.">
@@ -10,8 +10,7 @@
 <meta property="og:url" content="https://etxeberriai.com/eu/"><meta property="og:image" content="https://etxeberriai.com/icon-512.png">
 <link rel="icon" href="../icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../icon-180.png">
 <meta name="theme-color" content="#335c49">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../fonts/fonts.css">
 <style>
 /* Landing: hero with the live 3D demo, how it works, audiences, pricing, waiting list, FAQ */
 :root{
@@ -138,7 +137,7 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <form id="wl" novalidate>
       <div class="row"><input type="email" id="email" name="email" placeholder="zu@email.eus" autocomplete="email" required aria-label="Email" maxlength="200">
         <select id="profile" aria-label="Nor zara"><option value="particular">Nire etxea berrituko dut</option><option value="reformista">Obra-egilea edo diseinatzailea naiz</option><option value="inmobiliaria">Higiezinen agentzian lan egiten dut</option><option value="otro">Beste bat</option></select></div>
-      <label class="check"><input type="checkbox" id="consent"> <span>Onartzen dut EtxeBerriAIk nire emaila gordetzea abiarazteaz abisatzeko soilik. Nahi dudanean ezabatzeko eska dezaket.</span></label>
+      <label class="check"><input type="checkbox" id="consent"> <span>Onartzen dut EtxeBerriAIk nire emaila gordetzea abiarazteaz abisatzeko soilik. Nahi dudanean ezabatzeko eska dezaket. <a href="../legal/#privacidad">Pribatutasun-politika</a></span></label>
       <div class="row"><button class="btn pri" type="submit" id="send">Izena eman</button></div>
       <div class="msg" id="wl-msg" role="status"></div>
     </form>
@@ -150,10 +149,10 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <details><summary>Argazkiak benetakoak dira?</summary><p>Zure argazkietatik adimen artifizialarekin sortutako irudiak dira, eta hala markatuta daude. Orientagarriak dira: erabakitzeko balio dute, ez dira proiektu teknikoa.</p></details>
     <details><summary>Zer gertatzen da nire etxeko argazkiekin?</summary><p>Zure proiektuak zure mugikorrean gordetzen dira. Proposamen bakoitza sortzeko, argazkia Googleren AAra (Gemini) bidaltzen da ordainpeko moduan, eta horrek ez ditu zure datuak entrenatzeko erabiltzen.</p></details>
     <details><summary>Produktuen prezioak fidagarriak dira?</summary><p>Denda bakoitzeko erreferentziazko prezioak dira. Erosteko esteka batzuk afiliatuak dira: haietatik erosten baduzu, komisio txiki bat jasotzen dugu, zuretzat kosturik gabe.</p></details>
-    <details><summary>Zein hizkuntzatan dago?</summary><p>Webgunea gaztelaniaz, euskaraz, ingelesez, katalanez eta frantsesez dago. Aplikazioa, oraingoz, gaztelaniaz; beste hizkuntzak abiaraztearekin batera iritsiko dira.</p></details>
+    <details><summary>Zein hizkuntzatan dago?</summary><p>Webgunea eta aplikazioa gaztelaniaz, euskaraz, ingelesez, katalanez eta frantsesez daude. Aplikazioan Ezarpenetan aldatzen da.</p></details>
   </div></section>
 </main>
-<footer><div class="wrap">EtxeBerriAI · Berrikuntza AArekin. Proposamenen irudiak adimen artifizialarekin sortuak dira, orientagarriak.</div></footer>
+<footer><div class="wrap">EtxeBerriAI · Berrikuntza AArekin. Proposamenen irudiak adimen artifizialarekin sortuak dira, orientagarriak. · <a href="../legal/">Lege-oharra eta pribatutasuna</a></div></footer>
 <script>
 (function () {
   'use strict';
