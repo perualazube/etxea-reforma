@@ -44,11 +44,11 @@ T = {
   q2='¿Las fotos son reales?', a2='Son imágenes generadas con inteligencia artificial a partir de tus fotos y van marcadas como tales. Son orientativas: sirven para decidir, no son un proyecto técnico.',
   q3='¿Qué pasa con las fotos de mi casa?', a3='Tus proyectos se guardan en tu móvil. Para generar cada propuesta, la foto se envía a la IA de Google (Gemini) en su modalidad de pago, que no usa tus datos para entrenar.',
   q4='¿Los precios de los productos son fiables?', a4='Son precios de referencia de cada tienda. Algunos enlaces de compra son de afiliado: si compras por ellos, recibimos una pequeña comisión sin coste para ti.',
-  q5='¿En qué idiomas está?', a5='La web está en castellano, euskera, inglés, catalán y francés. La app, de momento, en castellano; los demás idiomas llegan con el lanzamiento.',
+  q5='¿En qué idiomas está?', a5='La web y la app están en castellano, euskera, inglés, catalán y francés. En la app se cambia en Ajustes.',
   foot='EtxeBerriAI · Reforma con IA. Imágenes de propuesta generadas con inteligencia artificial, orientativas.',
   m_email='Revisa el email, parece que falta algo.', m_consent='Marca la casilla para poder guardarte en la lista.',
   m_soon='La lista se abre en unos días. Mientras tanto puedes probar la app.', m_saving='Guardando...',
-  m_ok='¡Apuntado! Te avisaremos el día del lanzamiento.', m_err='No se pudo guardar. Inténtalo de nuevo.', lang_label='Idioma'),
+  m_ok='¡Apuntado! Te avisaremos el día del lanzamiento.', m_err='No se pudo guardar. Inténtalo de nuevo.', lang_label='Idioma', legal='Aviso legal y privacidad', privacy='Política de privacidad'),
  'eu': dict(
   title='EtxeBerriAI · Ikusi zure etxea nola geratuko den berritu aurretik',
   desc='Atera argazki bat gela bakoitzari eta EtxeBerriAIk berrikuntza errealista erakutsiko dizu, erosi beharreko produktuekin eta zenbat kostatzen den.',
@@ -83,11 +83,11 @@ T = {
   q2='Argazkiak benetakoak dira?', a2='Zure argazkietatik adimen artifizialarekin sortutako irudiak dira, eta hala markatuta daude. Orientagarriak dira: erabakitzeko balio dute, ez dira proiektu teknikoa.',
   q3='Zer gertatzen da nire etxeko argazkiekin?', a3='Zure proiektuak zure mugikorrean gordetzen dira. Proposamen bakoitza sortzeko, argazkia Googleren AAra (Gemini) bidaltzen da ordainpeko moduan, eta horrek ez ditu zure datuak entrenatzeko erabiltzen.',
   q4='Produktuen prezioak fidagarriak dira?', a4='Denda bakoitzeko erreferentziazko prezioak dira. Erosteko esteka batzuk afiliatuak dira: haietatik erosten baduzu, komisio txiki bat jasotzen dugu, zuretzat kosturik gabe.',
-  q5='Zein hizkuntzatan dago?', a5='Webgunea gaztelaniaz, euskaraz, ingelesez, katalanez eta frantsesez dago. Aplikazioa, oraingoz, gaztelaniaz; beste hizkuntzak abiaraztearekin batera iritsiko dira.',
+  q5='Zein hizkuntzatan dago?', a5='Webgunea eta aplikazioa gaztelaniaz, euskaraz, ingelesez, katalanez eta frantsesez daude. Aplikazioan Ezarpenetan aldatzen da.',
   foot='EtxeBerriAI · Berrikuntza AArekin. Proposamenen irudiak adimen artifizialarekin sortuak dira, orientagarriak.',
   m_email='Begiratu emaila, zerbait falta dela dirudi.', m_consent='Markatu laukia zerrendan gorde ahal izateko.',
   m_soon='Zerrenda egun gutxi barru irekiko da. Bitartean, aplikazioa proba dezakezu.', m_saving='Gordetzen...',
-  m_ok='Izena emanda! Abiarazte-egunean abisatuko dizugu.', m_err='Ezin izan da gorde. Saiatu berriro.', lang_label='Hizkuntza'),
+  m_ok='Izena emanda! Abiarazte-egunean abisatuko dizugu.', m_err='Ezin izan da gorde. Saiatu berriro.', lang_label='Hizkuntza', legal='Lege-oharra eta pribatutasuna', privacy='Pribatutasun-politika'),
  'en': dict(
   title='EtxeBerriAI · See your home renovated before you start',
   desc='Take a photo of each room and EtxeBerriAI shows you a realistic renovation, with the products to buy and what it costs.',
@@ -122,11 +122,11 @@ T = {
   q2='Are the photos real?', a2='They are images generated with artificial intelligence from your photos and are labelled as such. They are a guide to help you decide, not a technical project.',
   q3='What happens to the photos of my home?', a3='Your projects are stored on your phone. To create each proposal, the photo is sent to Google’s AI (Gemini) on its paid tier, which does not use your data for training.',
   q4='Are product prices reliable?', a4='They are each shop’s reference prices. Some shopping links are affiliate links: if you buy through them we receive a small commission at no cost to you.',
-  q5='Which languages is it in?', a5='The website is in Spanish, Basque, English, Catalan and French. The app is in Spanish for now; the other languages arrive with the launch.',
+  q5='Which languages is it in?', a5='The website and the app are in Spanish, Basque, English, Catalan and French. In the app you change it in Settings.',
   foot='EtxeBerriAI · Renovation with AI. Proposal images are generated with artificial intelligence and are for guidance only.',
   m_email='Check your email address, something seems to be missing.', m_consent='Tick the box so we can add you to the list.',
   m_soon='The list opens in a few days. Meanwhile you can try the app.', m_saving='Saving...',
-  m_ok='You are on the list! We will let you know on launch day.', m_err='Could not save. Please try again.', lang_label='Language'),
+  m_ok='You are on the list! We will let you know on launch day.', m_err='Could not save. Please try again.', lang_label='Language', legal='Legal notice and privacy', privacy='Privacy policy'),
  'ca': dict(
   title='EtxeBerriAI · Mira com quedarà casa teva abans de reformar-la',
   desc="Fes una foto de cada estança i EtxeBerriAI t'ensenya la reforma realista, amb els productes per comprar-la i el que costa.",
@@ -161,11 +161,11 @@ T = {
   q2='Les fotos són reals?', a2="Són imatges generades amb intel·ligència artificial a partir de les teves fotos i van marcades com a tals. Són orientatives: serveixen per decidir, no són un projecte tècnic.",
   q3='Què passa amb les fotos de casa meva?', a3="Els teus projectes es guarden al mòbil. Per generar cada proposta, la foto s'envia a la IA de Google (Gemini) en la modalitat de pagament, que no fa servir les teves dades per entrenar.",
   q4='Els preus dels productes són fiables?', a4="Són preus de referència de cada botiga. Alguns enllaços de compra són d'afiliat: si compres a través d'ells, rebem una petita comissió sense cost per a tu.",
-  q5='En quins idiomes està?', a5="El web està en castellà, basc, anglès, català i francès. L'app, de moment, en castellà; els altres idiomes arribaran amb el llançament.",
+  q5='En quins idiomes està?', a5="El web i l'app estan en castellà, basc, anglès, català i francès. A l'app es canvia a Configuració.",
   foot='EtxeBerriAI · Reforma amb IA. Imatges de proposta generades amb intel·ligència artificial, orientatives.',
   m_email="Revisa l'email, sembla que hi falta alguna cosa.", m_consent='Marca la casella per poder guardar-te a la llista.',
   m_soon="La llista s'obre d'aquí a uns dies. Mentrestant pots provar l'app.", m_saving='Desant...',
-  m_ok="Apuntat! T'avisarem el dia del llançament.", m_err="No s'ha pogut desar. Torna-ho a provar.", lang_label='Idioma'),
+  m_ok="Apuntat! T'avisarem el dia del llançament.", m_err="No s'ha pogut desar. Torna-ho a provar.", lang_label='Idioma', legal='Avís legal i privadesa', privacy='Política de privadesa'),
  'fr': dict(
   title='EtxeBerriAI · Voyez votre maison rénovée avant les travaux',
   desc='Prenez une photo de chaque pièce et EtxeBerriAI vous montre une rénovation réaliste, avec les produits à acheter et le coût.',
@@ -200,16 +200,16 @@ T = {
   q2='Les photos sont-elles réelles ?', a2="Ce sont des images générées par intelligence artificielle à partir de vos photos, signalées comme telles. Elles sont indicatives : elles aident à décider, ce n'est pas un projet technique.",
   q3='Que deviennent les photos de ma maison ?', a3="Vos projets sont enregistrés sur votre téléphone. Pour créer chaque proposition, la photo est envoyée à l'IA de Google (Gemini) en formule payante, qui n'utilise pas vos données pour l'entraînement.",
   q4='Les prix des produits sont-ils fiables ?', a4="Ce sont les prix de référence de chaque magasin. Certains liens d'achat sont affiliés : si vous achetez par leur biais, nous touchons une petite commission sans frais pour vous.",
-  q5='En quelles langues est-elle disponible ?', a5="Le site est en espagnol, basque, anglais, catalan et français. L'appli est pour l'instant en espagnol ; les autres langues arrivent avec le lancement.",
+  q5='En quelles langues est-elle disponible ?', a5="Le site et l'appli sont en espagnol, basque, anglais, catalan et français. Dans l'appli, on change la langue dans les Réglages.",
   foot="EtxeBerriAI · Rénovation avec l'IA. Images de proposition générées par intelligence artificielle, à titre indicatif.",
   m_email="Vérifiez l'e-mail, il semble manquer quelque chose.", m_consent='Cochez la case pour que nous puissions vous inscrire.',
   m_soon="La liste ouvre dans quelques jours. En attendant, vous pouvez essayer l'appli.", m_saving='Enregistrement...',
-  m_ok='Inscrit ! Nous vous préviendrons le jour du lancement.', m_err="L'enregistrement a échoué. Réessayez.", lang_label='Langue'),
+  m_ok='Inscrit ! Nous vous préviendrons le jour du lancement.', m_err="L'enregistrement a échoué. Réessayez.", lang_label='Langue', legal='Mentions légales et confidentialité', privacy='Politique de confidentialité'),
 }
 
 CSS = (ROOT / 'tools/landing.css').read_text()
-CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-       "font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; "
+CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+       "font-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; "
        "base-uri 'none'; form-action 'none'; object-src 'none'")
 
 
@@ -234,8 +234,7 @@ def page(lang):
 <meta property="og:url" content="{here}"><meta property="og:image" content="{SITE}/icon-512.png">
 <link rel="icon" href="{root}icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="{root}icon-180.png">
 <meta name="theme-color" content="#335c49">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="{root}fonts/fonts.css">
 <style>{CSS}
 .lang{{font:.88rem var(--f-body);padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--fg);min-width:0;flex:none}}
 .tagline{{font-size:.9rem;color:var(--muted);margin:10px 0 0}}
@@ -294,7 +293,7 @@ def page(lang):
     <form id="wl" novalidate>
       <div class="row"><input type="email" id="email" name="email" placeholder="{t['email_ph']}" autocomplete="email" required aria-label="Email" maxlength="200">
         <select id="profile" aria-label="{t['who_label']}"><option value="particular">{t['o1']}</option><option value="reformista">{t['o2']}</option><option value="inmobiliaria">{t['o3']}</option><option value="otro">{t['o4']}</option></select></div>
-      <label class="check"><input type="checkbox" id="consent"> <span>{t['consent']}</span></label>
+      <label class="check"><input type="checkbox" id="consent"> <span>{t['consent']} <a href="{root}legal/#privacidad">{t['privacy']}</a></span></label>
       <div class="row"><button class="btn pri" type="submit" id="send">{t['send']}</button></div>
       <div class="msg" id="wl-msg" role="status"></div>
     </form>
@@ -309,7 +308,7 @@ def page(lang):
     <details><summary>{t['q5']}</summary><p>{t['a5']}</p></details>
   </div></section>
 </main>
-<footer><div class="wrap">{t['foot']}</div></footer>
+<footer><div class="wrap">{t['foot']} · <a href="{root}legal/">{t['legal']}</a></div></footer>
 <script>
 (function () {{
   'use strict';

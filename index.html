@@ -1,6 +1,6 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>EtxeBerriAI · Mira cómo quedará tu casa antes de reformarla</title>
 <meta name="description" content="Haz una foto de cada estancia y EtxeBerriAI te enseña la reforma realista, con los productos para comprarla y lo que cuesta.">
@@ -10,8 +10,7 @@
 <meta property="og:url" content="https://etxeberriai.com/"><meta property="og:image" content="https://etxeberriai.com/icon-512.png">
 <link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#335c49">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Landing: hero with the live 3D demo, how it works, audiences, pricing, waiting list, FAQ */
 :root{
@@ -138,7 +137,7 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <form id="wl" novalidate>
       <div class="row"><input type="email" id="email" name="email" placeholder="tu@email.com" autocomplete="email" required aria-label="Email" maxlength="200">
         <select id="profile" aria-label="Quién eres"><option value="particular">Voy a reformar mi casa</option><option value="reformista">Soy reformista o interiorista</option><option value="inmobiliaria">Trabajo en una inmobiliaria</option><option value="otro">Otro</option></select></div>
-      <label class="check"><input type="checkbox" id="consent"> <span>Acepto que EtxeBerriAI guarde mi email solo para avisarme del lanzamiento. Puedo pedir que lo borren cuando quiera.</span></label>
+      <label class="check"><input type="checkbox" id="consent"> <span>Acepto que EtxeBerriAI guarde mi email solo para avisarme del lanzamiento. Puedo pedir que lo borren cuando quiera. <a href="legal/#privacidad">Política de privacidad</a></span></label>
       <div class="row"><button class="btn pri" type="submit" id="send">Apuntarme</button></div>
       <div class="msg" id="wl-msg" role="status"></div>
     </form>
@@ -150,10 +149,10 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <details><summary>¿Las fotos son reales?</summary><p>Son imágenes generadas con inteligencia artificial a partir de tus fotos y van marcadas como tales. Son orientativas: sirven para decidir, no son un proyecto técnico.</p></details>
     <details><summary>¿Qué pasa con las fotos de mi casa?</summary><p>Tus proyectos se guardan en tu móvil. Para generar cada propuesta, la foto se envía a la IA de Google (Gemini) en su modalidad de pago, que no usa tus datos para entrenar.</p></details>
     <details><summary>¿Los precios de los productos son fiables?</summary><p>Son precios de referencia de cada tienda. Algunos enlaces de compra son de afiliado: si compras por ellos, recibimos una pequeña comisión sin coste para ti.</p></details>
-    <details><summary>¿En qué idiomas está?</summary><p>La web está en castellano, euskera, inglés, catalán y francés. La app, de momento, en castellano; los demás idiomas llegan con el lanzamiento.</p></details>
+    <details><summary>¿En qué idiomas está?</summary><p>La web y la app están en castellano, euskera, inglés, catalán y francés. En la app se cambia en Ajustes.</p></details>
   </div></section>
 </main>
-<footer><div class="wrap">EtxeBerriAI · Reforma con IA. Imágenes de propuesta generadas con inteligencia artificial, orientativas.</div></footer>
+<footer><div class="wrap">EtxeBerriAI · Reforma con IA. Imágenes de propuesta generadas con inteligencia artificial, orientativas. · <a href="legal/">Aviso legal y privacidad</a></div></footer>
 <script>
 (function () {
   'use strict';

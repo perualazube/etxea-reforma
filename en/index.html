@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://*.workers.dev https://*.etxeberriai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>EtxeBerriAI · See your home renovated before you start</title>
 <meta name="description" content="Take a photo of each room and EtxeBerriAI shows you a realistic renovation, with the products to buy and what it costs.">
@@ -10,8 +10,7 @@
 <meta property="og:url" content="https://etxeberriai.com/en/"><meta property="og:image" content="https://etxeberriai.com/icon-512.png">
 <link rel="icon" href="../icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../icon-180.png">
 <meta name="theme-color" content="#335c49">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../fonts/fonts.css">
 <style>
 /* Landing: hero with the live 3D demo, how it works, audiences, pricing, waiting list, FAQ */
 :root{
@@ -138,7 +137,7 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <form id="wl" novalidate>
       <div class="row"><input type="email" id="email" name="email" placeholder="you@email.com" autocomplete="email" required aria-label="Email" maxlength="200">
         <select id="profile" aria-label="Who you are"><option value="particular">I am renovating my home</option><option value="reformista">I am a builder or interior designer</option><option value="inmobiliaria">I work at an estate agency</option><option value="otro">Other</option></select></div>
-      <label class="check"><input type="checkbox" id="consent"> <span>I agree that EtxeBerriAI stores my email only to tell me about the launch. I can ask for it to be deleted at any time.</span></label>
+      <label class="check"><input type="checkbox" id="consent"> <span>I agree that EtxeBerriAI stores my email only to tell me about the launch. I can ask for it to be deleted at any time. <a href="../legal/#privacidad">Privacy policy</a></span></label>
       <div class="row"><button class="btn pri" type="submit" id="send">Sign me up</button></div>
       <div class="msg" id="wl-msg" role="status"></div>
     </form>
@@ -150,10 +149,10 @@ nav select.lang{flex:none;min-width:0;width:auto;padding:8px 10px;font-size:.9re
     <details><summary>Are the photos real?</summary><p>They are images generated with artificial intelligence from your photos and are labelled as such. They are a guide to help you decide, not a technical project.</p></details>
     <details><summary>What happens to the photos of my home?</summary><p>Your projects are stored on your phone. To create each proposal, the photo is sent to Google’s AI (Gemini) on its paid tier, which does not use your data for training.</p></details>
     <details><summary>Are product prices reliable?</summary><p>They are each shop’s reference prices. Some shopping links are affiliate links: if you buy through them we receive a small commission at no cost to you.</p></details>
-    <details><summary>Which languages is it in?</summary><p>The website is in Spanish, Basque, English, Catalan and French. The app is in Spanish for now; the other languages arrive with the launch.</p></details>
+    <details><summary>Which languages is it in?</summary><p>The website and the app are in Spanish, Basque, English, Catalan and French. In the app you change it in Settings.</p></details>
   </div></section>
 </main>
-<footer><div class="wrap">EtxeBerriAI · Renovation with AI. Proposal images are generated with artificial intelligence and are for guidance only.</div></footer>
+<footer><div class="wrap">EtxeBerriAI · Renovation with AI. Proposal images are generated with artificial intelligence and are for guidance only. · <a href="../legal/">Legal notice and privacy</a></div></footer>
 <script>
 (function () {
   'use strict';
