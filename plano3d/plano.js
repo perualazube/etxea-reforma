@@ -156,5 +156,9 @@ const ETXEA = {
   changes: ['Paredes en blanco roto cálido', 'Parquet acuchillado en tono natural mate', 'Frentes de cocina en verde salvia', 'Mesa de centro de madera y alfombra de yute']
 };
 
-root.Plano = { normalize, deriveWalls, roomAt, area, PROMPT, ETXEA, FLOORS };
+// The same prompt asking for room names and changes in the owner's language.
+const LANG_NAMES = { es: 'español', eu: 'euskera', en: 'inglés', ca: 'catalán', fr: 'francés' };
+const promptFor = lang => PROMPT.replace('- Nombres en español.', `- Nombres de estancias, muebles y cambios en ${LANG_NAMES[lang] || 'español'}.`);
+
+root.Plano = { normalize, deriveWalls, roomAt, area, PROMPT, promptFor, ETXEA, FLOORS };
 })(typeof window !== 'undefined' ? window : globalThis);
