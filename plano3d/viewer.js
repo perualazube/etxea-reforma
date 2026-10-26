@@ -251,7 +251,7 @@ async function askAI(a, b64) {
 $('gen').onclick = async () => {
   const m = $('gen-msg'), btn = $('gen'); m.className = 'msg';
   const a = api();
-  if (!a) { m.className = 'msg err'; m.innerHTML = `${t('Falta la clave de Gemini o el código de acceso. Ponlo en')} <a href="../app/">${t('la app')}</a>${t(', en Ajustes.')}`; return; }
+  if (!a) { m.className = 'msg err'; m.innerHTML = `${t('Falta el código de acceso. Ponlo en')} <a href="../app/">${t('la app')}</a>${t(', en Ajustes.')}`; return; }
   btn.disabled = true; m.textContent = t('La IA está leyendo el boceto. Tarda unos 20 segundos...');
   try { const p = normalize(await askAI(a, sketch)); build(p); save(); m.textContent = t('Listo: {0} estancias, {1} m². Revisa las medidas en «Datos».', p.rooms.length, fmt(p.rooms.reduce((s, r) => s + area(r), 0))); }
   catch (e) { m.className = 'msg err'; m.textContent = e.message || t('No se pudo generar el plano.'); }

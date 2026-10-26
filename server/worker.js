@@ -26,7 +26,17 @@ export function costOf(body) {
 
 // Only the fields the app sends reach Google: no tools, agents or other paid extras through our key.
 const BODY_FIELDS = ['model', 'input', 'response_format', 'generation_config', 'system_instruction'];
-export const cleanBody = body => Object.fromEntries(BODY_FIELDS.filter(k => body?.[k] !== undefined).map(k => [k, body[k]]));
+export const cleanBody = body => {
+  const out = Object.fromEntries(BODY_FIELDS.filter(k => body?.[k] !== undefined).map(k => [k, body[k]]));
+  // Sizes are fixed so a request cannot ask for dearer 4K photos or 1080p videos.
+  const rf = out.response_format;
+  if (rf && typeof rf === 'object') {
+    out.response_format = { ...rf };
+    if ('image_size' in rf && !['1K', '2K'].includes(rf.image_size)) out.response_format.image_size = '2K';
+    if ('resolution' in rf) out.response_format.resolution = '720p';
+  }
+  return out;
+};
 
 const MAX_BODY = 25 * 1024 * 1024;
 // Workers rate-limit bindings (wrangler.toml [[ratelimits]]); missing bindings mean no limit, as in tests.

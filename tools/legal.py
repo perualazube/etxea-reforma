@@ -96,7 +96,6 @@ th{{font-family:var(--f-display);background:var(--soft)}}
     <tr><td><b>Datos técnicos</b>: dirección IP y datos del navegador al visitar la web o usar el servidor.</td><td data-l="Para qué">Servir la web y protegerla de ataques.</td><td data-l="Base legal">Interés legítimo en que el servicio funcione y sea seguro.</td><td data-l="Cuánto tiempo">Los registros temporales de nuestros proveedores.</td></tr>
   </table></div>
   <p><b>Tus proyectos se guardan en tu dispositivo.</b> Fotos, diseños, listas y ajustes viven en el almacenamiento de tu navegador; nosotros no tenemos acceso a ellos. Se borran con «Empezar de cero» en los Ajustes de la app o borrando los datos del sitio en el navegador.</p>
-  <p>Si usas tu propia clave de Google Gemini en lugar de un código de acceso, las fotos van directamente de tu navegador a Google, bajo tus propias condiciones con Google.</p>
   <h3>Proveedores</h3>
   <ul>
     <li><b>Cloudflare, Inc.</b>: dominio, servidor que conecta con la IA y guarda la lista de espera y los códigos.</li>
