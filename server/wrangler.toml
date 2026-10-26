@@ -7,7 +7,7 @@ routes = [{ pattern = "api.etxeberriai.com", custom_domain = true }]
 
 [vars]
 ALLOWED_ORIGINS = "https://etxeberriai.com,https://www.etxeberriai.com,https://perualazube.github.io"
-ALLOWED_MODELS = "gemini-nano-banana-2.1,gemini-3.1-flash-image,gemini-3.1-flash-lite-image,gemini-3-pro-image,gemini-3.8-flash,gemini-3.5-flash-lite,gemini-4-argon,gemini-omni-1.1-flash"
+ALLOWED_MODELS = "gemini-nano-banana-2.1,gemini-3.8-flash,gemini-omni-1.1-flash"
 
 # The deploy workflow creates the namespace on first run and fills in this id.
 # By hand: npx wrangler kv namespace create CODES  → paste the id here.

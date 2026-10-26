@@ -121,3 +121,15 @@ test('accepts the code typed in lower case or with spaces', async () => {
   assert.equal(r.status, 200);
   assert.equal((await r.json()).credits, 3);
 });
+
+test('photo and video sizes are capped', async () => {
+  mockFetch(); const e = env(30);
+  await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'img-model', input: 'x', response_format: { type: 'image', image_size: '4K' } }) }), e);
+  assert.equal(JSON.parse(calls[0].init.body).response_format.image_size, '2K');
+  mockFetch();
+  await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'img-model', input: 'x', response_format: { type: 'image', image_size: '1K' } }) }), e);
+  assert.equal(JSON.parse(calls[0].init.body).response_format.image_size, '1K');
+  mockFetch();
+  await worker.fetch(req('/v1beta/interactions', { method: 'POST', headers: auth, body: JSON.stringify({ model: 'img-model', input: 'x', response_format: { type: 'video', resolution: '1080p' } }) }), e);
+  assert.equal(JSON.parse(calls[0].init.body).response_format.resolution, '720p');
+});
