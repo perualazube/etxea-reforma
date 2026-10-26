@@ -2444,7 +2444,7 @@ async function house3d() {
   toast('Preparando tu casa en 3D. Te aviso al terminar.');
   try {
     const Pl = await loadPlano();
-    const base = Pl.normalize(stored || await AI.json(Pl.PROMPT, [await Media.blob(plan.mid)], { signal: job.ctl.signal }));
+    const base = Pl.normalize(stored || await AI.json(Pl.promptFor ? Pl.promptFor(LANG) : Pl.PROMPT, [await Media.blob(plan.mid)], { signal: job.ctl.signal }));
     const roomOf = it => Pl.roomAt(base, (it.x0 + it.x1) / 2, (it.z0 + it.z1) / 2);
     const prompt = `Tienes el plano 3D de una vivienda y ${picks.length} fotos reales de estancias ya reformadas: ${picks.map((x, i) => `imagen ${i + 1} = ${x.r.name} (${x.r.type})`).join('; ')}.
 ESTANCIAS DEL PLANO (id: nombre, límites en metros):

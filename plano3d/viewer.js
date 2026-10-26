@@ -1,7 +1,9 @@
 // 3D viewer for any plan produced by Plano.normalize(), plus the "create from sketch" flow through Gemini.
 (function () {
 'use strict';
-const { normalize, deriveWalls, roomAt, area, PROMPT, ETXEA } = window.Plano;
+const { normalize, deriveWalls, roomAt, area, promptFor, ETXEA } = window.Plano;
+const { t, translatePage, LANG } = window.PlanoI18n;
+translatePage();
 const STORE = 'etxea-plano3d';
 const GEM = 'https://generativelanguage.googleapis.com/v1beta';
 const $ = id => document.getElementById(id);
@@ -79,7 +81,7 @@ function build(p) {
   });
   p.items.forEach(it => { const mat = new THREE.MeshStandardMaterial({ roughness: .7 }); const m = box(it.x0, it.x1, it.y0, it.y0 + it.h, it.z0, it.z1, mat, group); m.userData.item = it; itemMeshes.push(m); });
   buildWalls(); buildLabels(); buildIndex(); applyMode();
-  $('title').textContent = p.name; document.title = p.name + ' · Plano 3D';
+  $('title').textContent = t(p.name); document.title = t(p.name) + ' · ' + t('Plano 3D');
   resize(); camera.position.copy(homePos()); controls.target.copy(home()); controls.update();
 }
 
@@ -138,15 +140,15 @@ function label(text, sub, x, z) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
   s.scale.set(2.3, 0.755, 1); s.position.set(x, (low ? 1 : wallH) + 0.55, z); s.renderOrder = 10; group.add(s); labels.push(s);
 }
-function buildLabels() { labels.splice(0).forEach(s => { group.remove(s); s.material.map.dispose(); }); plan.rooms.forEach(r => label(r.name, fmt(area(r)) + ' m²', (r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2)); }
+function buildLabels() { labels.splice(0).forEach(s => { group.remove(s); s.material.map.dispose(); }); plan.rooms.forEach(r => label(t(r.name), fmt(area(r)) + ' m²', (r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2)); }
 
 function buildIndex() {
   const el = $('rooms'); el.textContent = '';
   plan.rooms.forEach(r => { const b = document.createElement('button'); b.className = 'room';
-    const n = document.createElement('span'); n.textContent = r.name; const a = document.createElement('span'); a.className = 'm2'; a.textContent = fmt(area(r)) + ' m²';
+    const n = document.createElement('span'); n.textContent = t(r.name); const a = document.createElement('span'); a.className = 'm2'; a.textContent = fmt(area(r)) + ' m²';
     b.append(n, a); b.addEventListener('click', () => focusRoom(r)); el.appendChild(b); });
   $('tot').textContent = fmt(plan.rooms.reduce((s, r) => s + area(r), 0)) + ' m²';
-  const ch = $('changes'); ch.textContent = ''; plan.changes.forEach(t => { const li = document.createElement('li'); li.textContent = t; ch.appendChild(li); });
+  const ch = $('changes'); ch.textContent = ''; plan.changes.forEach(c => { const li = document.createElement('li'); li.textContent = t(c); ch.appendChild(li); });
 }
 
 function applyMode() {
@@ -162,7 +164,7 @@ let picRoom = null;
 function showPic(r) {
   const el = $('pic');
   if (!r || !r.photo || mode !== 'prop') { el.hidden = true; return; }
-  $('pic-img').src = r.photo; $('pic-img').alt = 'Foto reformada: ' + r.photoOf; $('pic-t').textContent = 'Tu reforma · ' + r.photoOf; el.hidden = false;
+  $('pic-img').src = r.photo; $('pic-img').alt = t('Foto reformada') + ': ' + r.photoOf; $('pic-t').textContent = t('Tu reforma') + ' · ' + r.photoOf; el.hidden = false;
 }
 $('pic-x').onclick = () => { picRoom = null; showPic(null); };
 
@@ -203,8 +205,8 @@ $('close-data').onclick = () => show('data', false);
 $('sample').onclick = () => { $('json').value = JSON.stringify(normalize(ETXEA), null, 1); };
 $('apply').onclick = () => {
   const m = $('data-msg'); m.className = 'msg';
-  try { const p = normalize(JSON.parse($('json').value)); build(p); save(); m.textContent = 'Plano actualizado.'; }
-  catch (e) { m.className = 'msg err'; m.textContent = e instanceof SyntaxError ? 'El texto no es JSON válido: ' + e.message : e.message; }
+  try { const p = normalize(JSON.parse($('json').value)); build(p); save(); m.textContent = t('Plano actualizado.'); }
+  catch (e) { m.className = 'msg err'; m.textContent = e instanceof SyntaxError ? t('El texto no es JSON válido:') + ' ' + e.message : e.message; }
 };
 $('download').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(plan, null, 1)], { type: 'application/json' })); a.download = (plan.name || 'plano').replace(/[^\w-]+/g, '-') + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
 function save() { lsSet(STORE, JSON.stringify(plan)); }
@@ -214,14 +216,14 @@ let sketch = null;
 $('file').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
   sketch = await shrink(f, 1600);
-  const img = document.createElement('img'); img.src = 'data:image/jpeg;base64,' + sketch; img.alt = 'Boceto elegido';
+  const img = document.createElement('img'); img.src = 'data:image/jpeg;base64,' + sketch; img.alt = t('Boceto elegido');
   $('drop').replaceChildren(img, $('file')); $('gen').disabled = false; $('gen-msg').textContent = '';
 });
 function shrink(file, max) {
   return new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
     im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
       const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', .88).split(',')[1]); };
-    im.onerror = () => rej(new Error('No se pudo leer la imagen.')); im.src = u; });
+    im.onerror = () => rej(new Error(t('No se pudo leer la imagen.'))); im.src = u; });
 }
 // Same settings as the main app (same origin): own Gemini key, or the Etxea server with an access code.
 function api() {
@@ -232,13 +234,13 @@ function api() {
 }
 function textOf(j) { const out = []; (function walk(o) { if (!o || typeof o !== 'object') return; if (Array.isArray(o)) return o.forEach(walk);
   if (typeof o.text === 'string') out.push(o.text); Object.keys(o).forEach(k => { if (k !== 'text') walk(o[k]); }); })(j); return out.join('\n'); }
-function parseJSON(t) { const s = String(t).replace(/```(?:json)?/g, ''); const a = s.indexOf('{'), b = s.lastIndexOf('}'); if (a < 0 || b < a) throw new Error('La IA no devolvió un plano. Prueba con una foto más nítida.'); return JSON.parse(s.slice(a, b + 1)); }
+function parseJSON(t) { const s = String(t).replace(/```(?:json)?/g, ''); const a = s.indexOf('{'), b = s.lastIndexOf('}'); if (a < 0 || b < a) throw new Error(t('La IA no devolvió un plano. Prueba con una foto más nítida.')); return JSON.parse(s.slice(a, b + 1)); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function askAI(a, b64) {
-  const body = { model: a.model, input: [{ type: 'image', mime_type: 'image/jpeg', data: b64 }, { type: 'text', text: PROMPT }] };
+  const body = { model: a.model, input: [{ type: 'image', mime_type: 'image/jpeg', data: b64 }, { type: 'text', text: promptFor(LANG) }] };
   let r = await fetch(a.base + '/interactions', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h }, body: JSON.stringify(body) });
   let j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(r.status === 402 ? 'No te quedan créditos.' : r.status === 401 ? 'El código de acceso no es válido.' : 'La IA respondió con un error: ' + (j.error?.message || r.status));
+  if (!r.ok) throw new Error(r.status === 402 ? t('No te quedan créditos.') : r.status === 401 ? t('El código de acceso no es válido.') : t('La IA respondió con un error:') + ' ' + (j.error?.message || r.status));
   for (let i = 0; i < 60 && (j.id || j.name) && /progress|pending|running|queued|processing|created/i.test(String(j.status || j.state || '')); i++) {
     await sleep(3000);
     r = await fetch(a.base + '/' + (String(j.id || j.name).includes('/') ? j.id || j.name : 'interactions/' + encodeURIComponent(j.id || j.name)), { headers: a.h });
@@ -249,10 +251,10 @@ async function askAI(a, b64) {
 $('gen').onclick = async () => {
   const m = $('gen-msg'), btn = $('gen'); m.className = 'msg';
   const a = api();
-  if (!a) { m.className = 'msg err'; m.innerHTML = 'Falta la clave de Gemini o el código de acceso. Ponlo en <a href="../app/">la app</a>, en Ajustes.'; return; }
-  btn.disabled = true; m.textContent = 'La IA está leyendo el boceto. Tarda unos 20 segundos...';
-  try { const p = normalize(await askAI(a, sketch)); build(p); save(); m.textContent = `Listo: ${p.rooms.length} estancias, ${fmt(p.rooms.reduce((s, r) => s + area(r), 0))} m². Revisa las medidas en «Datos».`; }
-  catch (e) { m.className = 'msg err'; m.textContent = e.message || 'No se pudo generar el plano.'; }
+  if (!a) { m.className = 'msg err'; m.innerHTML = `${t('Falta la clave de Gemini o el código de acceso. Ponlo en')} <a href="../app/">${t('la app')}</a>${t(', en Ajustes.')}`; return; }
+  btn.disabled = true; m.textContent = t('La IA está leyendo el boceto. Tarda unos 20 segundos...');
+  try { const p = normalize(await askAI(a, sketch)); build(p); save(); m.textContent = t('Listo: {0} estancias, {1} m². Revisa las medidas en «Datos».', p.rooms.length, fmt(p.rooms.reduce((s, r) => s + area(r), 0))); }
+  catch (e) { m.className = 'msg err'; m.textContent = e.message || t('No se pudo generar el plano.'); }
   finally { btn.disabled = false; }
 };
 
